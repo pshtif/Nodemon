@@ -16,21 +16,16 @@ namespace Nodemon.Editor
         {
             if (p_generateLinkXml)
             {
+                var content = @"<linker><assembly fullname=""" + p_assemblyName + @""" preserve=""all""/>";
+                
                 if (p_includeOdin)
                 {
-                    File.WriteAllText(p_assemblyPath + "/link.xml",
-                        @"<linker>                    
-                         <assembly fullname=""" + p_assemblyName + @""" preserve=""all""/>
-                         <assembly fullname=""OdinSerializer"" preserve=""all""/>
-                      </linker>");
+                    content += @"<assembly fullname=""OdinSerializer"" preserve=""all""/>";
                 }
-                else
-                {
-                    File.WriteAllText(p_assemblyPath + "/link.xml",
-                        @"<linker>                    
-                         <assembly fullname=""" + p_assemblyName + @""" preserve=""all""/>
-                      </linker>");
-                }
+                
+                content += @"</linker>";
+                
+                File.WriteAllText(p_assemblyPath + "/link.xml", content);
             }
             
             AOTSupportUtilities.GenerateDLL(p_assemblyPath, p_assemblyName, p_types, false);

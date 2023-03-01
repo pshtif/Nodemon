@@ -3,10 +3,9 @@
  */
 
 using System;
-using Nodemon;
 using UnityEngine;
 
-namespace RuntimeEditor
+namespace Nodemon
 {
     public static class UniversalGUILayout
     {
@@ -153,7 +152,7 @@ namespace RuntimeEditor
 
             var rect = GUILayoutUtility.GetLastRect();
             var size = rect.height - 8;
-            GUI.DrawTexture(new Rect(rect.x + rect.width - size - 4, rect.y + 4, size, size), UniversalUITextureManager.GetTexture("enumpopuparrow"), ScaleMode.StretchToFill);
+            GUI.DrawTexture(new Rect(rect.x + rect.width - size - 4, rect.y + 4, size, size), UniversalGUITextureManager.GetTexture("enumpopuparrow"), ScaleMode.StretchToFill);
 
             if (p_label != GUIContent.none)
             {

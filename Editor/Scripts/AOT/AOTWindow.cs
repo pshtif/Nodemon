@@ -21,6 +21,7 @@ namespace Nodemon.Editor
 
         private AOTConfig _aotConfig;
         
+        [MenuItem("Tools/AOT")]
         public static void Init()
         {
             var instance = GetWindow<AOTWindow>();
@@ -53,25 +54,38 @@ namespace Nodemon.Editor
             var scrollViewStyle = new GUIStyle();
             scrollViewStyle.normal.background = TextureUtils.GetColorTexture(new Color(.1f, .1f, .1f));
             
+            EditorGUI.BeginChangeCheck();
+
+            _aotConfig.assemblyPath = EditorGUILayout.TextField("Assembly Path", _aotConfig.assemblyPath);
+            _aotConfig.assemblyName = EditorGUILayout.TextField("Assembly Name", _aotConfig.assemblyName);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.SetDirty(_aotConfig);
+            }
+            
             GUILayout.Space(4);
             GUILayout.Label("Explicit Types", titleStyle, GUILayout.ExpandWidth(true));
             GUILayout.Label(
                 "You have " +
-                (_aotConfig.aotTypes == null
+                (_aotConfig.types == null
                     ? 0
-                    : _aotConfig.aotTypes.Count) + " explicitly defined types.", infoStyle,
+                    : _aotConfig.types.Count) + " explicitly defined types.", infoStyle,
                 GUILayout.ExpandWidth(true));
             GUILayout.Space(2);
             
             _scrollPositionExplicit = GUILayout.BeginScrollView(_scrollPositionExplicit, scrollViewStyle,
-                GUILayout.ExpandWidth(true), GUILayout.Height(rect.height - 160));
+                GUILayout.ExpandWidth(true), GUILayout.Height(rect.height - 204));
             GUILayout.BeginVertical();
             
-            if (_aotConfig.aotTypes != null)
+            if (_aotConfig.types != null)
             {
                 int index = 0;
-                foreach (Type type in _aotConfig.aotTypes)
+                foreach (Type type in _aotConfig.types)
                 {
+                    if (type == null)
+                        continue;
+                    
                     GUILayout.BeginHorizontal();
                     GUILayout.Label((string.IsNullOrEmpty(type.Namespace) ? "" : type.Namespace + ".") +
                                     type.GetReadableTypeName());
@@ -86,7 +100,7 @@ namespace Nodemon.Editor
                     
                     if (GUILayout.Button("Remove", GUILayout.Width(120)))
                     {
-                        _aotConfig.aotTypes.Remove(type);
+                        _aotConfig.types.Remove(type);
                         EditorUtility.SetDirty(_aotConfig);
                         GUILayout.EndHorizontal();
                         break;
@@ -120,27 +134,27 @@ namespace Nodemon.Editor
             
             GUILayout.EndHorizontal();
             
-            var dll = PluginImporter.GetAtPath(_aotConfig.AOTAssemblyPath + "/" +
-                                                  _aotConfig.AOTAssemblyName+".dll");
+            var dll = PluginImporter.GetAtPath(_aotConfig.assemblyPath + "/" +
+                                                  _aotConfig.assemblyName+".dll");
             
             if (dll != null)
             {
-                GUILayout.Label("Assembly generated in " + _aotConfig.AOTAssemblyPath + "/" +
-                                _aotConfig.AOTAssemblyName + ".dll" + " last generated on " +
-                                _aotConfig.AOTAssemblyGeneratedTime);
+                GUILayout.Label("Assembly generated in " + _aotConfig.assemblyPath + "/" +
+                                _aotConfig.assemblyName + ".dll" + " last generated on " +
+                                _aotConfig.assemblyGeneratedTime);
             }
             else
             {
                 GUILayout.Label("No generated Dash AOT Assembly found.");
             }
-            
+
             GUILayout.EndVertical();
             
             if (generate)
             {
-                _aotConfig.AOTAssemblyGeneratedTime = DateTime.Now;
+                _aotConfig.assemblyGeneratedTime = DateTime.Now;
                 EditorUtility.SetDirty(_aotConfig);
-                AOTGenerator.GenerateDLL(_aotConfig.aotTypes, _aotConfig.AOTAssemblyPath, _aotConfig.AOTAssemblyName, _generateLinkXml, _includeOdin);
+                AOTGenerator.GenerateDLL(_aotConfig.types, _aotConfig.assemblyPath, _aotConfig.assemblyName, _generateLinkXml, _includeOdin);
             }
         }
 
@@ -148,20 +162,20 @@ namespace Nodemon.Editor
         {
             Type[] types = { (Type)p_type };
             Type inflated = p_genericType.MakeGenericType(types);
-            _aotConfig.aotTypes[p_index] = inflated;
+            _aotConfig.types[p_index] = inflated;
             EditorUtility.SetDirty(_aotConfig);
         }
         
         void AddType(object p_type)
         {
-            if (_aotConfig.aotTypes == null)
+            if (_aotConfig.types == null)
             {
-                _aotConfig.aotTypes = new List<Type>();
+                _aotConfig.types = new List<Type>();
             }
 
-            if (!_aotConfig.aotTypes.Contains((Type)p_type))
+            if (!_aotConfig.types.Contains((Type)p_type))
             {
-                _aotConfig.aotTypes.Add((Type)p_type);
+                _aotConfig.types.Add((Type)p_type);
             }
             EditorUtility.SetDirty(_aotConfig);
         }

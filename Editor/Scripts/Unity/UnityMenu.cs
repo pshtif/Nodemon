@@ -13,12 +13,6 @@ namespace Nodemon.Editor
 {
     public class UnityMenu
     {
-        [MenuItem("Tools/Nodemon/AOT")]
-        public static void ShowAOTWindow()
-        {
-            AOTWindow.Init();
-        }
-        
         [MenuItem("Tools/UniversalGUI/Use EditorGUI")]
         public static void Reserialize()
         {

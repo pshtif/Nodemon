@@ -6,9 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Nodemon.Attributes;
 using OdinSerializer.Utilities;
-using RuntimeEditor;
+using Nodemon;
 using UnityEngine;
 using Object = System.Object;
 
@@ -127,7 +126,7 @@ namespace Nodemon
 
             GUI.color = parameter.isExpression ? PARAMETER_COLOR : Color.gray;
             
-            if (GUILayout.Button(UniversalUITextureManager.GetTexture("Icons/parameter_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
+            if (GUILayout.Button(UniversalGUITextureManager.GetTexture("Icons/parameter_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
             {
                 parameter.isExpression = !parameter.isExpression;
             }

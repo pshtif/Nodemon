@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Nodemon
 {
-    public class UniversalUITextureManager
+    public class UniversalGUITextureManager
     {
         static private Dictionary<string, Texture> _cache = new Dictionary<string, Texture>();
 

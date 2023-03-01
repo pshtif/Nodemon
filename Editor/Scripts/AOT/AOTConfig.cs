@@ -3,6 +3,7 @@
  */
 
 #if UNITY_EDITOR
+
 using System;
 using System.Collections.Generic;
 using OdinSerializer;
@@ -14,7 +15,7 @@ namespace Nodemon.Editor
     [Serializable]
     public class AOTConfig : ScriptableObject, ISerializationCallbackReceiver
     {
-        public static string name = "NodemonAOTConfig"; 
+        public static string name = "AOTConfig"; 
         
         public static AOTConfig Create()
         {
@@ -44,11 +45,11 @@ namespace Nodemon.Editor
             return config;
         }
         
-        public string AOTAssemblyPath = "Assets/Plugins";
-        public string AOTAssemblyName = "NodemonAOTAssembly"; 
-        public DateTime AOTAssemblyGeneratedTime;
+        public string assemblyPath = "Assets/Plugins";
+        public string assemblyName = "AOTAssembly"; 
+        public DateTime assemblyGeneratedTime;
 
-        public List<Type> aotTypes = new List<Type>();
+        public List<Type> types = new List<Type>();
 
         #region SERIALIZATION
 

@@ -4,16 +4,15 @@
 
 using System;
 
-namespace Nodemon.Attributes
+namespace Nodemon
 {
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-    public class DependencySingleAttribute : Attribute
+    public class DependencyAttribute : Attribute
     {
         public object Value { get; }
 
         public string DependencyName { get; }
 
-        public DependencySingleAttribute(string p_dependencyName, object p_value)
+        public DependencyAttribute(string p_dependencyName, object p_value)
         {
             DependencyName = p_dependencyName;
             Value = p_value;
