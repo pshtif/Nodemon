@@ -3,7 +3,6 @@
  */
 
 using System.Collections.Generic;
-using System.Globalization;
 using UnityEngine;
 
 namespace Nodemon
@@ -18,6 +17,9 @@ namespace Nodemon
 
         public static void BeginChangeCheck()
         {
+            #if UNITY_EDITOR
+            UnityEditor.EditorGUI.BeginChangeCheck();
+            #endif
             _changedStack.Push(changed);
             changed = false;
         }
@@ -29,7 +31,11 @@ namespace Nodemon
                 changed = true;
                 return true;
             }
+
             bool currentChanged = changed;
+            #if UNITY_EDITOR
+            currentChanged |= UnityEditor.EditorGUI.EndChangeCheck();
+            #endif
             changed |= _changedStack.Pop();
             return currentChanged;
         }
