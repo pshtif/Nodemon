@@ -3,7 +3,9 @@
  */
 
 using System;
+using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Nodemon
 {
@@ -178,6 +180,11 @@ namespace Nodemon
             GenericMenuPopup.Show(menu, "",  Event.current.mousePosition, 240, 300, false, false, true);
         }
 
+        public static bool Toggle(bool p_value, params GUILayoutOption[] p_options)
+        {
+            return Toggle(GUIContent.none, p_value, p_options);
+        }
+
         public static bool Toggle(string p_label, bool p_value, params GUILayoutOption[] p_options)
         {
             return Toggle(p_label == "" ? GUIContent.none : new GUIContent(p_label), p_value, p_options);
@@ -349,6 +356,56 @@ namespace Nodemon
             GUILayout.EndHorizontal();
 
             return text;
+        }
+        
+        public static Vector2 Vector2Field(string p_label, Vector2 p_value, params GUILayoutOption[] p_params)
+        {
+#if UNITY_EDITOR && USE_EDITORGUI
+            return UnityEditor.EditorGUILayout.Vector2Field(p_label, p_value, p_params);
+#else
+            EditorGUILayout.LabelField("Vector2 fields not yet supported for runtime.");
+            return p_value;
+#endif
+        }
+        
+        public static Vector3 Vector3Field(string p_label, Vector3 p_value, params GUILayoutOption[] p_params)
+        {
+#if UNITY_EDITOR && USE_EDITORGUI
+            return UnityEditor.EditorGUILayout.Vector3Field(p_label, p_value, p_params);
+#else
+            EditorGUILayout.LabelField("Vector3 fields not yet supported for runtime.");
+            return p_value;
+#endif
+        }
+
+        public static Vector4 Vector4Field(string p_label, Vector4 p_value, params GUILayoutOption[] p_params)
+        {
+#if UNITY_EDITOR && USE_EDITORGUI
+            return UnityEditor.EditorGUILayout.Vector4Field(p_label, p_value, p_params);
+#else
+            EditorGUILayout.LabelField("Vector4 fields not yet supported for runtime.");
+            return p_value;
+#endif
+        }
+        
+        public static Color ColorField(Color p_value)
+        {
+#if UNITY_EDITOR && USE_EDITORGUI
+            return UnityEditor.EditorGUILayout.ColorField(p_value);
+#else
+            EditorGUILayout.LabelField("Color fields not yet supported for runtime.");
+            return p_value;
+#endif
+        }
+        
+        public static Object ObjectField(Object p_value, Type p_type, bool p_sceneObject, params GUILayoutOption[] p_params)
+        {
+#if UNITY_EDITOR && USE_EDITORGUI
+            return UnityEditor.EditorGUILayout.ObjectField(p_value, p_type, p_sceneObject, p_params);
+#else
+            EditorGUILayout.LabelField("Color fields not yet supported for runtime.");
+            return p_value;
+#endif
         }
         
         // public static float Slider(GUIContent p_label, float p_value, float p_minValue, float p_maxValue, params GUILayoutOption[] p_options) 
