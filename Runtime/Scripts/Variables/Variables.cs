@@ -3,6 +3,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -12,12 +13,12 @@ using UnityEngine;
 namespace Nodemon
 {
     [Serializable]
-    public class Variables
+    public class Variables : IEnumerable<Variable>, IVariables
     {
         public int Count => _variables.Count;
 
         [NonSerialized] 
-        protected Dictionary<string, Variable> _lookupDictionary;
+        protected Dictionary<string, Variable> _lookupCache;
 
         [SerializeField] 
         internal List<Variable> _variables = new List<Variable>();
@@ -35,15 +36,15 @@ namespace Nodemon
 
         public void ClearVariables()
         {
-            _lookupDictionary = new Dictionary<string, Variable>();
+            _lookupCache = new Dictionary<string, Variable>();
             _variables = new List<Variable>();
         }
 
         public bool HasVariable(string p_name)
         {
-            if (_lookupDictionary == null) InvalidateLookup();
+            if (_lookupCache == null) InvalidateLookup();
 
-            return _lookupDictionary.ContainsKey(p_name);
+            return _lookupCache.ContainsKey(p_name);
         }
 
         public Variable GetVariable(string p_name)
@@ -51,7 +52,7 @@ namespace Nodemon
             if (!HasVariable(p_name))
                 return null;
 
-            return _lookupDictionary[p_name];
+            return _lookupCache[p_name];
         }
 
         public Variable<T> GetVariable<T>(string p_name)
@@ -59,7 +60,7 @@ namespace Nodemon
             if (!HasVariable(p_name))
                 return null;
 
-            return (Variable<T>) _lookupDictionary[p_name];
+            return (Variable<T>) _lookupCache[p_name];
         }
 
         public void AddVariableByType(Type p_type, string p_name, [CanBeNull] object p_value)
@@ -86,7 +87,7 @@ namespace Nodemon
         {
             if (HasVariable(p_name))
             {
-                ((Variable<T>) _lookupDictionary[p_name]).value = p_value;
+                ((Variable<T>) _lookupCache[p_name]).value = p_value;
             }
             else
             {
@@ -125,10 +126,10 @@ namespace Nodemon
 
         private void InvalidateLookup()
         {
-            _lookupDictionary = new Dictionary<string, Variable>();
+            _lookupCache = new Dictionary<string, Variable>();
             foreach (Variable variable in _variables)
             {
-                _lookupDictionary.Add(variable.Name, variable);
+                _lookupCache.Add(variable.Name, variable);
             }
         }
 
@@ -149,6 +150,21 @@ namespace Nodemon
             string name = "new" + p_type.ToString().Substring(p_type.ToString().LastIndexOf(".") + 1);
 
             AddVariableByType((Type) p_type, GetUniqueName(name), null);
+        }
+        
+        public IEnumerator<Variable> GetEnumerator()
+        {
+            return _variables.GetEnumerator();
+        }
+
+        IEnumerator<Variable> IEnumerable<Variable>.GetEnumerator()
+        {
+            return _variables.GetEnumerator();
+        }
+        
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable)_lookupCache.Values).GetEnumerator();
         }
     }
 }

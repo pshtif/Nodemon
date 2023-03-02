@@ -30,6 +30,9 @@ namespace Nodemon
                 index++;
             });
             
+            GUILayout.Space(4);
+            
+            GUI.color = new Color(1, .5f, 0);
             if (UniversalGUILayout.Button("Add Variable", GUILayout.Height(24)))
             {
                 VariableTypesMenu.Show(p_variables, Event.current.mousePosition);

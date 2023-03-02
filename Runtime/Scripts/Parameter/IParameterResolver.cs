@@ -13,7 +13,5 @@ namespace Nodemon
         string errorMessage { get; }
         
         object Resolve(string p_name, bool p_referenced, IAttributeDataCollection p_collection = null);
-
-        object SetRandom(Random p_random);
     }
 }

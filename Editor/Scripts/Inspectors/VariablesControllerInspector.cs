@@ -9,7 +9,7 @@ using UnityEditor;
 namespace Dash
 {
     [CustomEditor(typeof(VariablesController))]
-    public class DashVariablesControllerInspector : UnityEditor.Editor
+    public class VariablesControllerInspector : UnityEditor.Editor
     {
         protected VariablesController variablesController => (VariablesController) target;
 
