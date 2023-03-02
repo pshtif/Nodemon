@@ -14,7 +14,7 @@ namespace Nodemon
         
         private static readonly Stack<bool> _changedStack = new Stack<bool>();
         
-        internal static bool changed = false;
+        public static bool changed = false;
 
         public static void BeginChangeCheck()
         {
