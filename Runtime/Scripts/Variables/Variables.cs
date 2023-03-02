@@ -20,14 +20,14 @@ namespace Nodemon
         protected Dictionary<string, Variable> _lookupDictionary;
 
         [SerializeField] 
-        public List<Variable> _variables = new List<Variable>();
+        internal List<Variable> _variables = new List<Variable>();
 
         public List<Variable> Get()
         {
             return _variables;
         }
 
-        public void Initialize(GameObject p_target)
+        public void Initialize(IVariableBindable p_target)
         {
             _variables.ForEach(v => v.InitializeBinding(p_target));
             _variables.ForEach(v => v.InitializeLookup(p_target));
@@ -96,7 +96,7 @@ namespace Nodemon
             }
         }
 
-        public void PasteVariable(Variable p_variable, GameObject p_target)
+        public void PasteVariable(Variable p_variable, IVariableBindable p_target)
         {
             p_variable.Rename(GetUniqueName(p_variable.Name));
             _variables.Add(p_variable);
@@ -143,14 +143,12 @@ namespace Nodemon
 
             return p_name;
         }
-
-#if UNITY_EDITOR
+        
         public void AddNewVariable(Type p_type)
         {
             string name = "new" + p_type.ToString().Substring(p_type.ToString().LastIndexOf(".") + 1);
 
             AddVariableByType((Type) p_type, GetUniqueName(name), null);
         }
-#endif
     }
 }

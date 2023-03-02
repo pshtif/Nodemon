@@ -312,7 +312,7 @@ namespace Nodemon
             if (GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) &&
                 Event.current.button == 1 && Event.current.type == EventType.MouseDown)
             {
-                RuntimeGenericMenu menu = new RuntimeGenericMenu();
+                UniversalGUIGenericMenu menu = new UniversalGUIGenericMenu();
                 
                 menu.AddItem(new GUIContent("Copy reference"), false,
                     () =>

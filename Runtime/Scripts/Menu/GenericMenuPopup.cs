@@ -88,13 +88,13 @@ namespace Nodemon
     public class GenericMenuPopup : IPopup
     #endif
     {
-        public static GenericMenuPopup Get(RuntimeGenericMenu p_menu, string p_title)
+        public static GenericMenuPopup Get(UniversalGUIGenericMenu p_menu, string p_title)
         {
             var popup = new GenericMenuPopup(p_menu, p_title);
             return popup;
         }
         
-        public static GenericMenuPopup Show(RuntimeGenericMenu p_menu, string p_title, Vector2 p_position, int p_width = 200, int p_height = 200, bool p_showSearch = true, bool p_showTooltip = true, bool p_showOnStatus = false) {
+        public static GenericMenuPopup Show(UniversalGUIGenericMenu p_menu, string p_title, Vector2 p_position, int p_width = 200, int p_height = 200, bool p_showSearch = true, bool p_showTooltip = true, bool p_showOnStatus = false) {
             var popup = new GenericMenuPopup(p_menu, p_title);
             popup.width = p_width;
             popup.height = p_height;
@@ -160,7 +160,7 @@ namespace Nodemon
         public bool showTitle = false;
         
 
-        public GenericMenuPopup(RuntimeGenericMenu p_menu, string p_title)
+        public GenericMenuPopup(UniversalGUIGenericMenu p_menu, string p_title)
         {
             _title = p_title;
             showTitle = !string.IsNullOrWhiteSpace(_title);
@@ -481,7 +481,7 @@ namespace Nodemon
         }
 
         // TODO Possible type caching? 
-        public static MenuItemNode GenerateMenuItemNodeTree(RuntimeGenericMenu p_menu)
+        public static MenuItemNode GenerateMenuItemNodeTree(UniversalGUIGenericMenu p_menu)
         {
             MenuItemNode rootNode = new MenuItemNode();
             if (p_menu == null)

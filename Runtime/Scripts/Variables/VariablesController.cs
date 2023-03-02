@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Nodemon
 {
-    public class VariablesController : MonoBehaviour, ISerializationCallbackReceiver, ISupportsPrefabSerialization
+    public class VariablesController : MonoBehaviour, ISerializationCallbackReceiver, ISupportsPrefabSerialization, IVariableBindable
     {
         [SerializeField] 
         protected Variables _variables;
@@ -26,7 +26,7 @@ namespace Nodemon
 
         private void Awake()
         {
-            Variables.Initialize(gameObject);
+            Variables.Initialize(this);
             
             //MachinaCore.Instance.SetGlobalVariables(this);
         }

@@ -46,8 +46,7 @@ namespace Nodemon.Editor
        
             if (!allDefines.Contains("USE_EDITORGUI"))
                 allDefines.Add("USE_EDITORGUI");
-
-            Debug.Log(allDefines);
+            
             PlayerSettings.SetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup,
                 string.Join(";", allDefines.ToArray()));
             Debug.Log(GetAllDefines());

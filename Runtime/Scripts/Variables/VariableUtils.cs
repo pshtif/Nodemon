@@ -26,7 +26,7 @@ namespace Nodemon
             copiedVariables.Add(p_variable);
         }
 
-        public static void PasteVariables(Variables p_toVariables, GameObject p_target)
+        public static void PasteVariables(Variables p_toVariables, IVariableBindable p_target)
         {
             copiedVariables.ForEach(v => p_toVariables.PasteVariable(v.Clone(), p_target));
         }

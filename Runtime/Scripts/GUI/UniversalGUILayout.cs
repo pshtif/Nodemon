@@ -91,6 +91,11 @@ namespace Nodemon
             GUILayout.Box(p_label, Skin.box, p_options);
         }
         
+        public static bool Button(string p_label, params GUILayoutOption[] p_options)
+        {
+            return Button(new GUIContent(p_label), Skin.button, p_options);
+        }
+        
         public static bool Button(string p_label, GUIStyle p_style = null, params GUILayoutOption[] p_options)
         {
             return Button(new GUIContent(p_label), p_style, p_options);
@@ -167,7 +172,7 @@ namespace Nodemon
 
         private static void ShowEnumPopup(Enum p_value)
         {
-            RuntimeGenericMenu menu = new RuntimeGenericMenu();
+            UniversalGUIGenericMenu menu = new UniversalGUIGenericMenu();
 
             int index = Array.IndexOf(Enum.GetValues(p_value.GetType()), p_value);
 
@@ -192,6 +197,9 @@ namespace Nodemon
 
         public static bool Toggle(GUIContent p_label, bool p_value, params GUILayoutOption[] p_options)
         {
+#if UNITY_EDITOR && USE_EDITORGUI
+            return UnityEditor.EditorGUILayout.Toggle(p_label, p_value, p_options);
+#else
             int thisId = GUIUtility.GetControlID("Toggle".GetHashCode(), FocusType.Keyboard);
             Event current = Event.current;
             EventType type = current.type;
@@ -222,6 +230,7 @@ namespace Nodemon
             }
 
             return boolValue;
+#endif
         }
 
         public static void Label(string p_label, params GUILayoutOption[] p_options)
@@ -278,17 +287,12 @@ namespace Nodemon
             // Rect fieldRect = InsertLabel(rect, p_label, Skin.label);
             GUILayout.Label(p_label, GUILayout.Width(labelWidth));
 
-            var value = FloatField(p_value);
+            var value = FloatField(p_value, p_options);
             GUILayout.EndHorizontal();
             return value;
         }
         
         public static float FloatField (float p_value, params GUILayoutOption[] p_options)
-        {
-            return FloatField (p_value);
-        }
-
-        public static float FloatField(float p_value)
         {
             int thisId = GUIUtility.GetControlID("FloatField".GetHashCode(), FocusType.Keyboard) + 1;
             if (thisId == 0)
@@ -298,7 +302,7 @@ namespace Nodemon
             
             string floatString = current ? _currentEditingString : p_value.ToString();
             
-            floatString = GUILayout.TextField(floatString, Skin.textField);
+            floatString = GUILayout.TextField(floatString, Skin.textField, p_options);
             if (current) _currentEditingString = floatString;
 
             if (floatString != "" && floatString != p_value.ToString())
@@ -325,14 +329,14 @@ namespace Nodemon
             return p_value;
         }
 
-        public static string TextField(string p_text, params GUILayoutOption[] p_params)
+        public static string TextField(string p_text, params GUILayoutOption[] p_options)
         {
-            return TextField(p_text, Skin.textField, p_params);
+            return TextField(p_text, Skin.textField, p_options);
         }
         
-        public static string TextField(string p_text, GUIStyle p_style, params GUILayoutOption[] p_params)
+        public static string TextField(string p_text, GUIStyle p_style, params GUILayoutOption[] p_options)
         {
-            var newText = GUILayout.TextField(p_text, p_style, p_params);
+            var newText = GUILayout.TextField(p_text, p_style, p_options);
              
             if (newText != p_text)
                 UniversalGUI.changed = true;
@@ -340,48 +344,48 @@ namespace Nodemon
             return newText;
         }
         
-        public static string TextField(string p_label, string p_text, params GUILayoutOption[] p_params)
+        public static string TextField(string p_label, string p_text, params GUILayoutOption[] p_options)
         {
-            return TextField(p_label, p_text, Skin.textField, p_params);
+            return TextField(p_label, p_text, Skin.textField, p_options);
         }
         
-        public static string TextField(string p_label, string p_text, GUIStyle p_style, params GUILayoutOption[] p_params)
+        public static string TextField(string p_label, string p_text, GUIStyle p_style, params GUILayoutOption[] p_options)
         {
             GUILayout.BeginHorizontal();
             
             GUILayout.Label(p_label, GUILayout.Width(labelWidth));
 
-            var text = TextField(p_text, p_style, p_params);
+            var text = TextField(p_text, p_style, p_options);
             
             GUILayout.EndHorizontal();
 
             return text;
         }
         
-        public static Vector2 Vector2Field(string p_label, Vector2 p_value, params GUILayoutOption[] p_params)
+        public static Vector2 Vector2Field(string p_label, Vector2 p_value, params GUILayoutOption[] p_options)
         {
 #if UNITY_EDITOR && USE_EDITORGUI
-            return UnityEditor.EditorGUILayout.Vector2Field(p_label, p_value, p_params);
+            return UnityEditor.EditorGUILayout.Vector2Field(p_label, p_value, p_options);
 #else
             EditorGUILayout.LabelField("Vector2 fields not yet supported for runtime.");
             return p_value;
 #endif
         }
         
-        public static Vector3 Vector3Field(string p_label, Vector3 p_value, params GUILayoutOption[] p_params)
+        public static Vector3 Vector3Field(string p_label, Vector3 p_value, params GUILayoutOption[] p_options)
         {
 #if UNITY_EDITOR && USE_EDITORGUI
-            return UnityEditor.EditorGUILayout.Vector3Field(p_label, p_value, p_params);
+            return UnityEditor.EditorGUILayout.Vector3Field(p_label, p_value, p_options);
 #else
             EditorGUILayout.LabelField("Vector3 fields not yet supported for runtime.");
             return p_value;
 #endif
         }
 
-        public static Vector4 Vector4Field(string p_label, Vector4 p_value, params GUILayoutOption[] p_params)
+        public static Vector4 Vector4Field(string p_label, Vector4 p_value, params GUILayoutOption[] p_options)
         {
 #if UNITY_EDITOR && USE_EDITORGUI
-            return UnityEditor.EditorGUILayout.Vector4Field(p_label, p_value, p_params);
+            return UnityEditor.EditorGUILayout.Vector4Field(p_label, p_value, p_options);
 #else
             EditorGUILayout.LabelField("Vector4 fields not yet supported for runtime.");
             return p_value;
@@ -398,16 +402,26 @@ namespace Nodemon
 #endif
         }
         
-        public static Object ObjectField(Object p_value, Type p_type, bool p_sceneObject, params GUILayoutOption[] p_params)
+        public static Object ObjectField(Object p_value, Type p_type, bool p_sceneObject, params GUILayoutOption[] p_options)
         {
 #if UNITY_EDITOR && USE_EDITORGUI
-            return UnityEditor.EditorGUILayout.ObjectField(p_value, p_type, p_sceneObject, p_params);
+            return UnityEditor.EditorGUILayout.ObjectField(p_value, p_type, p_sceneObject, p_options);
 #else
             EditorGUILayout.LabelField("Color fields not yet supported for runtime.");
             return p_value;
 #endif
         }
-        
+
+        public static void Space(int p_width, bool p_expand)
+        {
+#if UNITY_EDITOR && USE_EDITORGUI
+            UnityEditor.EditorGUILayout.Space(p_width, true);
+#else
+            // Not working as we would need to internally add it to layer cache which is not accessible in Unity :/
+            GUILayoutUtility.GetRect(p_width, p_width, GUILayout.ExpandWidth(p_expand));
+#endif
+        }
+
         // public static float Slider(GUIContent p_label, float p_value, float p_minValue, float p_maxValue, params GUILayoutOption[] p_options) 
         // {
         //     Rect rect = GetLayoutRect (p_label, Skin.GetStyle("WhiteLabel"), p_options);

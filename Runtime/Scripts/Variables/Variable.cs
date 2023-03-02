@@ -5,12 +5,9 @@
 using System;
 using System.Reflection;
 using JetBrains.Annotations;
+using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditorInternal;
-#endif
 
 namespace Nodemon
 {
@@ -43,25 +40,24 @@ namespace Nodemon
             _name = p_newName;
         }
         
-        abstract public void BindProperty(PropertyInfo p_property, Component p_component);
+        abstract public void BindProperty(PropertyInfo p_property, Component p_component, IVariableBindable p_bindable);
         
-        abstract public void BindField(FieldInfo p_field, Component p_component);
+        abstract public void BindField(FieldInfo p_field, Component p_component, IVariableBindable p_bindable);
 
         abstract public void UnbindProperty();
 
-        abstract public bool InitializeBinding(GameObject p_target);
+        abstract public bool InitializeBinding(IVariableBindable p_bindable);
 
         public void SetAsLookup(bool p_lookup)
         {
             Type = p_lookup ? VariableType.LOOKUP : VariableType.VALUE;
         }
 
-        abstract public void InitializeLookup(GameObject p_target);
+        abstract public void InitializeLookup(IVariableBindable p_bindable);
 
         public abstract Variable Clone();
-
-#if UNITY_EDITOR
-        public abstract void ValueField(float p_maxWidth);
+        
+        public abstract bool ValueField(float p_maxWidth, IVariableBindable p_bindable);
 
         static public string ConvertToTypeName(Type p_type)
         {
@@ -74,15 +70,21 @@ namespace Nodemon
                     return "int";
             }
 
-            return typeString.Substring(typeString.LastIndexOf(".") + 1);
+            typeString = typeString.Substring(typeString.LastIndexOf(".") + 1);
+            
+            if (p_type.IsGenericType && p_type.GetGenericTypeDefinition() == typeof(ExposedReference<>))
+            {
+                return typeString.Substring(0, typeString.Length - 1);
+            }
+
+            return typeString;
         }
-        
-#endif
     }
 
     [Serializable]
     public class Variable<T> : Variable
     {
+        [SerializeField]
         protected T _value;
 
         [NonSerialized]
@@ -140,31 +142,31 @@ namespace Nodemon
             return v;
         }
         
-        public override void BindProperty(PropertyInfo p_property, Component p_component)
+        public override void BindProperty(PropertyInfo p_property, Component p_component, IVariableBindable p_bindable)
         {
             Type = VariableType.BOUND;
             _boundType = VariableBindType.PROPERTY;
             _boundName = p_property.Name;
             _boundComponentName = p_component.GetType().FullName;
 
-            InitializeBinding(p_component.gameObject);
+            InitializeBinding(p_bindable);
         }
         
-        public override void BindField(FieldInfo p_field, Component p_component)
+        public override void BindField(FieldInfo p_field, Component p_component, IVariableBindable p_bindable)
         {
             Type = VariableType.BOUND;
             _boundType = VariableBindType.FIELD;
             _boundName = p_field.Name;
             _boundComponentName = p_component.GetType().FullName;
 
-            InitializeBinding(p_component.gameObject);
+            InitializeBinding(p_bindable);
         }
 
-        public void RebindProperty(GameObject p_gameObject)
+        public void RebindProperty(IVariableBindable p_bindable)
         {
             if (Type == VariableType.BOUND)
             {
-                InitializeBinding(p_gameObject);
+                InitializeBinding(p_bindable);
             }
         }
 
@@ -177,13 +179,13 @@ namespace Nodemon
             Type = VariableType.VALUE;
         }
 
-        public override bool InitializeBinding(GameObject p_target)
+        public override bool InitializeBinding(IVariableBindable p_bindable)
         {
             if (!IsBound)
                 return false;
             
             Type componentType = ReflectionUtils.GetTypeByName(_boundComponentName);
-            Component component = p_target.GetComponent(componentType);
+            Component component = p_bindable.gameObject.GetComponent(componentType);
             if (component == null)
             {
                 Debug.LogWarning("Cannot find component " + _boundComponentName + " for variable " + Name);
@@ -230,24 +232,24 @@ namespace Nodemon
             return true;
         }
         
-        public override void InitializeLookup(GameObject p_target)
+        public override void InitializeLookup(IVariableBindable p_bindable)
         {
             if (!IsLookup)
                 return;
             
-            var rect = p_target.transform.DeepFind(Name);
+            var transform = p_bindable.gameObject.transform.DeepFind(Name);
 
             bool found = false;
-            if (rect != null)
+            if (transform != null)
             {
-                if (typeof(T).IsAssignableFrom(rect.GetType()))
+                if (typeof(T).IsAssignableFrom(transform.GetType()))
                 {
-                    objectValue = rect;
+                    objectValue = transform;
                     found = true;
                 }
                 else
                 {
-                    var component = rect.GetComponent<T>();
+                    var component = transform.GetComponent<T>();
                     if (component == null)
                     {
                         objectValue = component;
@@ -268,9 +270,9 @@ namespace Nodemon
             return (K)(object)p_delegate;
         }
         
-#if UNITY_EDITOR
-        public override void ValueField(float p_maxWidth)
+        public override bool ValueField(float p_maxWidth, IVariableBindable p_bindable)
         {
+            bool invalidate = false;
             FieldInfo valueField = GetType().GetField("_value", BindingFlags.Instance | BindingFlags.NonPublic);
             if (IsBound)
             {
@@ -284,102 +286,126 @@ namespace Nodemon
             {
                 if (IsEnumProperty(valueField))
                 {
-                    EnumProperty(valueField);
-                } else if (typeof(UnityEngine.Object).IsAssignableFrom(typeof(T)))
+                    invalidate = EnumProperty(valueField);
+                } 
+                // else if (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(ExposedReference<>))
+                // {
+                //     if (p_bindable != null)
+                //     {
+                //         invalidate = ExposedProperty(valueField, p_bindable);
+                //     }
+                //     else
+                //     {
+                //         GUILayout.Label("NOT ASSIGNALBE ON ASSET");
+                //     }
+                // }
+                else if (typeof(UnityEngine.Object).IsAssignableFrom(typeof(T)))
                 {
+                    UniversalGUI.BeginChangeCheck();
                     // Hack to work with EditorGUILayout instead of EditorGUI where ObjectField always show large preview that we don't want
-                    objectValue = EditorGUILayout.ObjectField(value as UnityEngine.Object, typeof(T), true);
-                } else {
+                    objectValue = UniversalGUILayout.ObjectField(value as UnityEngine.Object, typeof(T), p_bindable != null, GUILayout.Width(p_maxWidth));
+                    if (UniversalGUI.EndChangeCheck())
+                    {
+                        invalidate = true;
+                    }
+                } 
+                else
+                {
                     string type = typeof(T).ToString();
                     switch (type)
                     {
                         case "System.String":
-                            EditorGUI.BeginChangeCheck();
-                            var stringValue = EditorGUILayout.TextField((string)valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
-                            if (EditorGUI.EndChangeCheck())
+                            UniversalGUI.BeginChangeCheck();
+                            var stringValue = UniversalGUILayout.TextField((string)valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            if (UniversalGUI.EndChangeCheck())
                             {
+                                invalidate = true;
                                 valueField.SetValue(this, stringValue);
                             }
                             break;
                         case "System.Boolean":
-                            EditorGUI.BeginChangeCheck();
-                            EditorGUILayout.Space(0, true);
-                            var boolValue = EditorGUILayout.Toggle((bool)valueField.GetValue(this), GUILayout.Width(16));
-                            if (EditorGUI.EndChangeCheck())
+                            UniversalGUI.BeginChangeCheck();
+                            var boolValue = UniversalGUILayout.Toggle((bool)valueField.GetValue(this), GUILayout.Width(16));
+                            if (UniversalGUI.EndChangeCheck())
                             {
+                                invalidate = true;
                                 valueField.SetValue(this, boolValue);
                             }
                             break;
                         case "System.Int32":
-                            EditorGUI.BeginChangeCheck();
-                            var intValue = EditorGUILayout.IntField((int)valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
-                            if (EditorGUI.EndChangeCheck())
+                            UniversalGUI.BeginChangeCheck();
+                            var intValue = UniversalGUILayout.IntField((int)valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            if (UniversalGUI.EndChangeCheck())
                             {
+                                invalidate = true;
                                 valueField.SetValue(this, intValue);
                             }
                             break;
                         case "System.Single":
                             // value = (T) Convert.ChangeType(EditorGUILayout.FloatField(Convert.ToSingle(value)),
                             //     typeof(T));
-                            EditorGUI.BeginChangeCheck();
-                            var floatValue = EditorGUILayout.DelayedFloatField((float)valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
-                            if (EditorGUI.EndChangeCheck())
+                            UniversalGUI.BeginChangeCheck();
+                            var floatValue = UniversalGUILayout.FloatField((float)valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            if (UniversalGUI.EndChangeCheck())
                             {
+                                invalidate = true;
                                 valueField.SetValue(this, floatValue);
                             }
                             break;
                         case "UnityEngine.Vector2":
-                            // value = (T) Convert.ChangeType(
-                            //     EditorGUILayout.Vector2Field("",
-                            //         (Vector2) Convert.ChangeType(value, typeof(Vector2))),
-                            //     typeof(T));
-                            EditorGUI.BeginChangeCheck();
-                            var vector2Value = EditorGUILayout.Vector2Field("", (Vector2) valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
-                            if (EditorGUI.EndChangeCheck())
+                            UniversalGUI.BeginChangeCheck();
+                            var vector2Value = UniversalGUILayout.Vector2Field("", (Vector2) valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            if (UniversalGUI.EndChangeCheck())
                             {
+                                invalidate = true;
                                 valueField.SetValue(this, vector2Value);
                             }
                             break;
                         case "UnityEngine.Vector3":
-                            EditorGUI.BeginChangeCheck();
-                            var vector3Value = EditorGUILayout.Vector3Field("", (Vector3) valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
-                            if (EditorGUI.EndChangeCheck())
+                            UniversalGUI.BeginChangeCheck();
+                            var vector3Value = UniversalGUILayout.Vector3Field("", (Vector3) valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            if (UniversalGUI.EndChangeCheck())
                             {
+                                invalidate = true;
                                 valueField.SetValue(this, vector3Value);
                             }
                             break;
                         case "UnityEngine.Vector4":
-                            EditorGUI.BeginChangeCheck();
-                            var vector4Value = EditorGUILayout.Vector4Field("", (Vector4) valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
-                            if (EditorGUI.EndChangeCheck())
+                            UniversalGUI.BeginChangeCheck();
+                            var vector4Value = UniversalGUILayout.Vector4Field("", (Vector4) valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            if (UniversalGUI.EndChangeCheck())
                             {
+                                invalidate = true;
                                 valueField.SetValue(this, vector4Value);
                             }
                             break;
                         case "UnityEngine.Quaternion":
-                            EditorGUI.BeginChangeCheck();
+                            UniversalGUI.BeginChangeCheck();
                             Quaternion q = (Quaternion) valueField.GetValue(this);
                             Vector4 v4 = new Vector4(q.x, q.y, q.z, q.w);
-                            v4 = EditorGUILayout.Vector4Field("", v4, GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
-                            if (EditorGUI.EndChangeCheck())
+                            v4 = UniversalGUILayout.Vector4Field("", v4, GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            if (UniversalGUI.EndChangeCheck())
                             {
                                 valueField.SetValue(this, new Quaternion(v4.x, v4.y, v4.z, v4.w));
                             }
                             break;
                         case "UnityEngine.Color":
-                            EditorGUI.BeginChangeCheck();
-                            var colorValue = EditorGUILayout.ColorField((Color)valueField.GetValue(this));
-                            if (EditorGUI.EndChangeCheck())
+                            UniversalGUI.BeginChangeCheck();
+                            var colorValue = UniversalGUILayout.ColorField((Color)valueField.GetValue(this));
+                            if (UniversalGUI.EndChangeCheck())
                             {
+                                invalidate = true;
                                 valueField.SetValue(this, colorValue);
                             }
                             break;
                         default:
-                            GUILayout.Label("UI not supported.");
+                            GUILayout.Label("Variable type not supported.");
                             break;
                     }
                 }
             }
+
+            return invalidate;
         }
         
         bool IsEnumProperty(FieldInfo p_fieldInfo)
@@ -392,11 +418,11 @@ namespace Nodemon
             if (!IsEnumProperty(p_fieldInfo))
                 return false;
             
-            EditorGUI.BeginChangeCheck();
+            UniversalGUI.BeginChangeCheck();
             
-            var newValue = EditorGUILayout.EnumPopup((Enum) p_fieldInfo.GetValue(this));
+            var newValue = UniversalGUILayout.EnumPopup((Enum) p_fieldInfo.GetValue(this));
 
-            if (EditorGUI.EndChangeCheck())
+            if (UniversalGUI.EndChangeCheck())
             {
                 p_fieldInfo.SetValue(this, newValue);
                 return true;
@@ -404,6 +430,5 @@ namespace Nodemon
 
             return false;
         }
-#endif
     }
 }

@@ -44,7 +44,7 @@ namespace Nodemon
         }
     }
     
-    public class RuntimeGenericMenu
+    public class UniversalGUIGenericMenu
     {
         public List<RuntimeGenericMenuItem> Items { get; private set; } = new List<RuntimeGenericMenuItem>();
         

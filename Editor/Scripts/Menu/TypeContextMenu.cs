@@ -26,9 +26,9 @@ namespace Nodemon.Editor
             GenericMenuPopup.Show(Get(p_callback), "Select Type",  _lastMousePosition, 300, 300, true, false);
         }
         
-        static public RuntimeGenericMenu Get(Action<object> p_callback)
+        static public UniversalGUIGenericMenu Get(Action<object> p_callback)
         {
-            RuntimeGenericMenu menu = new RuntimeGenericMenu();
+            UniversalGUIGenericMenu menu = new UniversalGUIGenericMenu();
 
             Type[] loadedTypes = ReflectionUtils.GetAllTypes();
             foreach (Type type in loadedTypes)
