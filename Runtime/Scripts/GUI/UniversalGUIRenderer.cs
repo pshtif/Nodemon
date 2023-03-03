@@ -6,6 +6,8 @@ namespace Nodemon
     {
         private void OnGUI()
         {
+            GUI.skin = UniversalGUI.Skin;
+            
             Rect rect = new Rect(0, 0, Screen.width, Screen.height);
             UniversalGUIPopup.HandleMouseBlocking(rect);
             GUILayout.BeginArea(rect);

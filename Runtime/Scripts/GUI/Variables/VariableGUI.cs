@@ -18,8 +18,9 @@ namespace Nodemon
         
         public static bool DrawVariablesInspector(string p_title, Variables p_variables, IVariableBindable p_bindable, float p_maxWidth)
         {
-            if (p_title != "") DrawTitle(p_title, 12);
-            
+            if (!DrawMinimizableTitle(p_title, ref p_variables._minimized, 13))
+                return false;
+
             int index = 0;
             bool invalidate = false;
             p_variables._variables?.ForEach(variable =>
@@ -35,7 +36,11 @@ namespace Nodemon
             GUI.color = new Color(1, .5f, 0);
             if (UniversalGUILayout.Button("Add Variable", GUILayout.Height(24)))
             {
+#if UNITY_EDITOR
                 VariableTypesMenu.Show(p_variables, Event.current.mousePosition);
+#else
+                VariableTypesMenu.Show(p_variables, GUIUtility.GUIToScreenPoint(Event.current.mousePosition));
+#endif
             }
             GUI.color = Color.white;
 
@@ -63,7 +68,7 @@ namespace Nodemon
             GUILayout.FlexibleSpace();
             GUILayout.BeginVertical(GUILayout.Width(16));
             GUILayout.Space(2);
-            if (GUILayout.Button(UniversalGUITextureManager.GetTexture("Icons/settings_icon"), GUIStyle.none, GUILayout.Height(16), GUILayout.Width(16)))
+            if (GUILayout.Button(TextureUtils.GetTexture("Icons/settings_icon"), GUIStyle.none, GUILayout.Height(16), GUILayout.Width(16)))
             {
                 var menu = VariableSettingsMenu.Get(p_variables, p_name, p_bindable);
                 GenericMenuPopup.Show(menu, "", Event.current.mousePosition, 240, 300, false, false);

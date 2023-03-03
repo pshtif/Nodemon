@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace Nodemon
 {
@@ -22,6 +23,8 @@ namespace Nodemon
 
         [SerializeField] 
         internal List<Variable> _variables = new List<Variable>();
+
+        internal bool _minimized = false;
 
         public List<Variable> Get()
         {

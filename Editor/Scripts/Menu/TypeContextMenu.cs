@@ -21,7 +21,11 @@ namespace Nodemon.Editor
 
         static public void ShowAsPopup(Action<object> p_callback)
         {
+            #if UNITY_EDITOR
             _lastMousePosition = Event.current.mousePosition;
+            #else
+            _lastMousePosition = GUIUtility.GUIToScreenPoint(Event.current.mousePosition);
+            #endif
 
             GenericMenuPopup.Show(Get(p_callback), "Select Type",  _lastMousePosition, 300, 300, true, false);
         }

@@ -159,7 +159,7 @@ namespace Nodemon
 
             var rect = GUILayoutUtility.GetLastRect();
             var size = rect.height - 8;
-            GUI.DrawTexture(new Rect(rect.x + rect.width - size - 4, rect.y + 4, size, size), UniversalGUITextureManager.GetTexture("enumpopuparrow"), ScaleMode.StretchToFill);
+            GUI.DrawTexture(new Rect(rect.x + rect.width - size - 4, rect.y + 4, size, size), TextureUtils.GetTexture("enumpopuparrow"), ScaleMode.StretchToFill);
 
             if (p_label != GUIContent.none)
             {
@@ -182,7 +182,11 @@ namespace Nodemon
                     () => { _currentShowingPopupIndex = i; });
             }
             
-            GenericMenuPopup.Show(menu, "",  Event.current.mousePosition, 240, 300, false, false, true);
+#if UNITY_EDITOR
+            GenericMenuPopup.Show(menu, "", Event.current.mousePosition, 240, 300, false, false, true);
+#else
+            GenericMenuPopup.Show(menu, "", GUIUtility.GUIToScreenPoint(Event.current.mousePosition), 240, 300, false, false, true);
+#endif
         }
 
         public static bool Toggle(bool p_value, params GUILayoutOption[] p_options)
@@ -367,7 +371,7 @@ namespace Nodemon
 #if UNITY_EDITOR && USE_EDITORGUI
             return UnityEditor.EditorGUILayout.Vector2Field(p_label, p_value, p_options);
 #else
-            EditorGUILayout.LabelField("Vector2 fields not yet supported for runtime.");
+            UniversalGUILayout.Label("Vector2 fields not yet supported for runtime.");
             return p_value;
 #endif
         }
@@ -377,7 +381,7 @@ namespace Nodemon
 #if UNITY_EDITOR && USE_EDITORGUI
             return UnityEditor.EditorGUILayout.Vector3Field(p_label, p_value, p_options);
 #else
-            EditorGUILayout.LabelField("Vector3 fields not yet supported for runtime.");
+            UniversalGUILayout.Label("Vector3 fields not yet supported for runtime.");
             return p_value;
 #endif
         }
@@ -387,7 +391,7 @@ namespace Nodemon
 #if UNITY_EDITOR && USE_EDITORGUI
             return UnityEditor.EditorGUILayout.Vector4Field(p_label, p_value, p_options);
 #else
-            EditorGUILayout.LabelField("Vector4 fields not yet supported for runtime.");
+            UniversalGUILayout.Label("Vector4 fields not yet supported for runtime.");
             return p_value;
 #endif
         }
@@ -397,7 +401,7 @@ namespace Nodemon
 #if UNITY_EDITOR && USE_EDITORGUI
             return UnityEditor.EditorGUILayout.ColorField(p_value);
 #else
-            EditorGUILayout.LabelField("Color fields not yet supported for runtime.");
+            UniversalGUILayout.Label("Color fields not yet supported for runtime.");
             return p_value;
 #endif
         }
@@ -407,7 +411,7 @@ namespace Nodemon
 #if UNITY_EDITOR && USE_EDITORGUI
             return UnityEditor.EditorGUILayout.ObjectField(p_value, p_type, p_sceneObject, p_options);
 #else
-            EditorGUILayout.LabelField("Color fields not yet supported for runtime.");
+            UniversalGUILayout.Label("Color fields not yet supported for runtime.");
             return p_value;
 #endif
         }

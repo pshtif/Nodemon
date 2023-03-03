@@ -58,6 +58,11 @@ namespace Nodemon
 
             return nicifed;
         }
+
+        public static void Box(Rect p_rect, Color p_color)
+        {
+            GUI.Box(p_rect, TextureUtils.GetColorTexture(p_color));
+        }
         
         public static bool Toggle(Rect p_rect, bool p_value)
         {

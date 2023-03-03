@@ -126,7 +126,7 @@ namespace Nodemon
 
             GUI.color = parameter.isExpression ? PARAMETER_COLOR : Color.gray;
             
-            if (GUILayout.Button(UniversalGUITextureManager.GetTexture("Icons/parameter_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
+            if (GUILayout.Button(TextureUtils.GetTexture("Icons/parameter_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
             {
                 parameter.isExpression = !parameter.isExpression;
             }

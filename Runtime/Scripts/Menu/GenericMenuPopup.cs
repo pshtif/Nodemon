@@ -113,7 +113,7 @@ namespace Nodemon
             {
                 if (_backStyle == null)
                 {
-                    _backStyle = new GUIStyle(GUI.skin.button);
+                    _backStyle = new GUIStyle(UniversalGUI.Skin.button);
                     _backStyle.alignment = TextAnchor.MiddleLeft;
                     _backStyle.hover.background = Texture2D.grayTexture;
                     _backStyle.normal.textColor = Color.black;
@@ -401,7 +401,7 @@ namespace Nodemon
             {
                 _contentHeight += 22;
                 GUILayout.Space(2);
-                if (GUILayout.Button(_currentNode.GetPath(), BackStyle, GUILayout.Height(20)))
+                if (UniversalGUILayout.Button(_currentNode.GetPath(), BackStyle, GUILayout.Height(20)))
                 {
                     _currentNode = _currentNode.parent;
                 }

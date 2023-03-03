@@ -1,4 +1,4 @@
-/*
+﻿/*
  *	Created by:  Peter @sHTiF Stefcek
  */
 
@@ -10,6 +10,26 @@ namespace Nodemon
     public class TextureUtils
     {
         private static Dictionary<Color, Texture2D> _cachedColorTextures;
+        static private Dictionary<string, Texture> _cachedResourceTextures = new Dictionary<string, Texture>();
+
+        public static Texture GetTexture(string p_name)
+        {
+            if (_cachedResourceTextures.ContainsKey(p_name))
+                return _cachedResourceTextures[p_name];
+
+            Texture texture = Resources.Load<Texture>("Textures/"+p_name);
+            if (texture != null)
+            {
+                _cachedResourceTextures.Add(p_name, texture);
+            }
+            else
+            {
+                Debug.Log("Texture not found "+p_name);
+            }
+
+            return texture;
+        }
+        
         public static Texture2D GetColorTexture(Color p_color)
         {
             if (_cachedColorTextures == null)
