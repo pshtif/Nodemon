@@ -9,12 +9,28 @@ namespace Nodemon
 {
     public static class StringExtensions
     {
-        public static string RemoveWhitespace(this string p_input)
+        public static string RemoveWhitespace(this string p_string)
         {
-            if (p_input == null)
+            if (p_string == null)
                 return null;
             
-            return new string(p_input.Where(c => !Char.IsWhiteSpace(c)).ToArray());
+            return new string(p_string.Where(c => !Char.IsWhiteSpace(c)).ToArray());
+        }
+        
+        public static bool IsNullOrWhitespace(this string p_string)
+        {
+            if (!string.IsNullOrEmpty(p_string))
+            {
+                for (int i = 0; i < p_string.Length; i++)
+                {
+                    if (char.IsWhiteSpace(p_string[i]) == false)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }
