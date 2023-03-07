@@ -8,7 +8,7 @@ namespace Nodemon
 {
     public class UniversalGUIUtils
     {
-         public static void DrawTitle(string p_title, int? p_size = null)
+         public static void DrawTitle(string p_title, int? p_size = null, int? p_space = null)
         {
             var style = new GUIStyle();
             style.alignment = TextAnchor.MiddleCenter;
@@ -20,7 +20,7 @@ namespace Nodemon
             GUI.backgroundColor = new Color(0, 0, 0, .35f);
 
             GUILayout.Label(p_title, style, GUILayout.ExpandWidth(true), GUILayout.Height(style.fontSize * 2));
-            GUILayout.Space(4);
+            GUILayout.Space(p_space.HasValue ? p_space.Value : 4);
 
             GUI.backgroundColor = Color.white;
         }
