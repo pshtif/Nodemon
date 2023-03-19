@@ -36,6 +36,7 @@ namespace Nodemon
             GUI.color = new Color(1, .5f, 0);
             if (UniversalGUILayout.Button("Add Variable", GUILayout.Height(24)))
             {
+                invalidate = true;
 #if UNITY_EDITOR
                 VariableTypesMenu.Show(p_variables, Event.current.mousePosition);
 #else
