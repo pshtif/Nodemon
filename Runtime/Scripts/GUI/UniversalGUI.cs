@@ -63,6 +63,12 @@ namespace Nodemon
         {
             GUI.Box(p_rect, TextureUtils.GetColorTexture(p_color));
         }
+
+        public static bool Button(Rect p_rect, GUIContent p_content, GUIStyle p_style = null)
+        {
+            if (p_style == null) p_style = Skin.button;
+            return GUI.Button(p_rect, p_content, p_style);
+        }
         
         public static bool Toggle(Rect p_rect, bool p_value)
         {
