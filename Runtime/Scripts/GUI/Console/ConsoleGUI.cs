@@ -19,9 +19,16 @@ namespace Nodemon
         private static List<ConsoleMessage> _newMessages = new List<ConsoleMessage>();
         private static List<ConsoleMessage> _messages = new List<ConsoleMessage>();
 
+        private static List<ConsoleCommand> _commands = new List<ConsoleCommand>();
+
         public static void AddMessage(ConsoleMessage p_message)
         {
             _newMessages.Add(p_message);
+        }
+
+        public static void AddCommand(ConsoleCommand p_command)
+        {
+            _commands.Add(p_command);
         }
 
         public static void DrawGUI(Rect p_rect)
@@ -109,19 +116,28 @@ namespace Nodemon
         static void ExecuteCommand()
         {
             var commandSplit = _command.Split(' ').ToList();
-            string command = commandSplit[0];
+            string commandString = commandSplit[0];
 
             bool verbose = commandSplit.Contains("--verbose");
             commandSplit.Remove("--verbose");
 
-            switch (command)
+            var command = _commands.Find(c => c.Command == commandString);
+
+            if (command != null)
             {
-                case "close":
-                    visible = false;
-                    break;
-                default:
-                    AddMessage(new ConsoleMessage("Unknown command "+command,Color.red));
-                    break;
+                command.Action?.Invoke();
+            }
+            else
+            {
+                switch (commandString)
+                {
+                    case "close":
+                        visible = false;
+                        break;
+                    default:
+                        AddMessage(new ConsoleMessage("Unknown command " + command, Color.red));
+                        break;
+                }
             }
 
             _command = "";

@@ -17,6 +17,11 @@ namespace Nodemon
             var message = new ConsoleMessage(p_message, p_color.HasValue ? p_color.Value : Color.white);
             ConsoleGUI.AddMessage(message);
         }
+
+        public static void AddCommand(ConsoleCommand p_command)
+        {
+            ConsoleGUI.AddCommand(p_command);
+        }
         
         public static void HookUnityLog()
         {
