@@ -366,6 +366,42 @@ namespace Nodemon
             return text;
         }
         
+        public static string PasswordField(string p_text, params GUILayoutOption[] p_options)
+        {
+            return PasswordField(p_text, Skin.textField, p_options);
+        }
+        
+        public static string PasswordField(string p_text, GUIStyle p_style, params GUILayoutOption[] p_options)
+        {
+            if (p_style == null)
+                p_style = Skin.textField;
+            
+            var newText = GUILayout.PasswordField(p_text, '*', p_style, p_options);
+             
+            if (newText != p_text)
+                UniversalGUI.changed = true;
+
+            return newText;
+        }
+        
+        public static string PasswordField(string p_label, string p_text, params GUILayoutOption[] p_options)
+        {
+            return PasswordField(p_label, p_text, Skin.textField, p_options);
+        }
+        
+        public static string PasswordField(string p_label, string p_text, GUIStyle p_style, params GUILayoutOption[] p_options)
+        {
+            GUILayout.BeginHorizontal();
+            
+            GUILayout.Label(p_label, GUILayout.Width(labelWidth));
+
+            var text = PasswordField(p_text, p_style, p_options);
+            
+            GUILayout.EndHorizontal();
+
+            return text;
+        }
+        
         public static Vector2 Vector2Field(string p_label, Vector2 p_value, params GUILayoutOption[] p_options)
         {
 #if UNITY_EDITOR && USE_EDITORGUI
@@ -416,10 +452,10 @@ namespace Nodemon
 #endif
         }
 
-        public static void Space(int p_width, bool p_expand)
+        public static void Space(int p_width, bool p_expand = false)
         {
 #if UNITY_EDITOR && USE_EDITORGUI
-            UnityEditor.EditorGUILayout.Space(p_width, true);
+            UnityEditor.EditorGUILayout.Space(p_width, p_expand);
 #else
             // Not working as we would need to internally add it to layer cache which is not accessible in Unity :/
             GUILayoutUtility.GetRect(p_width, p_width, GUILayout.ExpandWidth(p_expand));
