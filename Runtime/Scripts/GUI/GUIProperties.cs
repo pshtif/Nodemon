@@ -395,6 +395,35 @@ namespace Nodemon
                     }
                     return false;
                 
+                case "System.Byte":
+                    UniversalGUI.BeginChangeCheck();
+                    
+                    if (p_parentObject == null) GUILayout.BeginHorizontal();
+                    
+                    UniversalGUILayout.Label(p_label,  GUILayout.Width(labelWidth));
+                    HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
+
+                    byte byteValue = 0;
+
+                    if (range == null)
+                    {
+                        byteValue = (byte)UniversalGUILayout.IntField((byte) p_fieldInfo.GetValue(p_fieldObject));
+                    }
+                    else
+                    {
+                        // byteValue = (byte)EditorGUILayout.IntSlider((int) p_fieldInfo.GetValue(p_fieldObject), (int)range.min,
+                        //     (int)range.max);
+                    }
+
+                    if (p_parentObject == null) GUILayout.EndHorizontal();
+
+                    if (UniversalGUI.EndChangeCheck())
+                    {
+                        p_fieldInfo.SetValue(p_fieldObject, byteValue);
+                        return true;
+                    }
+                    return false;
+                
                 case "System.Single":
                     UniversalGUI.BeginChangeCheck();
                     
