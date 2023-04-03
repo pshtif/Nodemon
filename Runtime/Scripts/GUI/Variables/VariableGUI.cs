@@ -18,8 +18,7 @@ namespace Nodemon
         
         public static bool DrawVariablesInspector(string p_title, Variables p_variables, IVariableBindable p_bindable, float p_maxWidth)
         {
-            if (!DrawMinimizableTitle(p_title, ref p_variables._minimized, 13))
-                return false;
+            DrawTitle(p_title, 13);
 
             int index = 0;
             bool invalidate = false;
@@ -122,7 +121,7 @@ namespace Nodemon
             titleStyle.fontStyle = FontStyle.Bold;
             titleStyle.fontSize = p_size;
 
-            GUI.backgroundColor = new Color(0, 0, 0, .35f);
+            GUI.backgroundColor = new Color(0, 0, 0, .5f);
 
             GUILayout.Label(p_title, titleStyle, GUILayout.ExpandWidth(true), GUILayout.Height(p_size * 2));
             GUILayout.Space(4);

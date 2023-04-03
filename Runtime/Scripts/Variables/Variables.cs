@@ -24,7 +24,7 @@ namespace Nodemon
         [SerializeField] 
         internal List<Variable> _variables = new List<Variable>();
 
-        internal bool _minimized = false;
+        public bool minimized = true;
 
         public List<Variable> Get()
         {
