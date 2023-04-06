@@ -114,6 +114,77 @@ namespace Nodemon
             return false;
         }
 
+        public static int Popup(GUIContent p_label, int p_selectedIndex, string[] p_items, params GUILayoutOption[] p_options)
+        {
+#if UNITY_EDITOR && USE_EDITORGUI
+            return UnityEditor.EditorGUILayout.Popup(p_label, p_selectedIndex, p_items, p_options);
+#else
+            if (p_label != GUIContent.none)
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(p_label, GUILayout.Width(labelWidth));
+            }
+
+            int thisId = GUIUtility.GetControlID("Popup".GetHashCode(), FocusType.Keyboard) + 1;
+            if (thisId == 0)
+            {
+                if (p_label != GUIContent.none)
+                {
+                    GUILayout.EndHorizontal();
+                }
+
+                return p_selectedIndex;
+            }
+
+            if (thisId == _currentShowingPopup && _currentShowingPopupIndex >= 0)
+            {
+                p_selectedIndex = _currentShowingPopupIndex;
+                _currentShowingPopup = -1;
+                _currentShowingPopupIndex = -1;
+            }
+
+            var style = Skin.GetStyle("enumpopupfield");
+            if (GUILayout.Button(p_items[p_selectedIndex], style))
+            {
+                GUIUtility.keyboardControl = -1;
+                UniversalGUI.changed = true;
+                _currentShowingPopup = thisId;
+                ShowPopup(p_selectedIndex, p_items);
+            }
+            
+            var rect = GUILayoutUtility.GetLastRect();
+            var size = rect.height - 8;
+            GUI.DrawTexture(new Rect(rect.x + rect.width - size - 4, rect.y + 4, size, size), TextureUtils.GetTexture("enumpopuparrow"), ScaleMode.StretchToFill);
+
+            if (p_label != GUIContent.none)
+            {
+                GUILayout.EndHorizontal();
+            }
+
+            return p_selectedIndex;
+#endif
+        }
+        
+        private static void ShowPopup(int p_selectedIndex, string[] p_items)
+        {
+            UniversalGUIGenericMenu menu = new UniversalGUIGenericMenu();
+
+
+            int i = 0;
+            foreach (var item in p_items)
+            {
+                int local = i;
+                menu.AddItem(new GUIContent(item), i == p_selectedIndex, () => { _currentShowingPopupIndex = local; });
+                i++;
+            }
+
+#if UNITY_EDITOR
+            GenericMenuPopup.Show(menu, "", Event.current.mousePosition, 240, 300, false, false, true);
+#else
+            GenericMenuPopup.Show(menu, "", GUIUtility.GUIToScreenPoint(Event.current.mousePosition), 240, 300, false, false, true);
+#endif
+        }
+        
         public static Enum EnumPopup(Enum p_value)
         {
             return EnumPopup(GUIContent.none, p_value);
@@ -167,7 +238,7 @@ namespace Nodemon
             }
 
             return p_value;
-            #endif
+#endif
         }
 
         private static void ShowEnumPopup(Enum p_value)
