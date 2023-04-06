@@ -503,12 +503,43 @@ namespace Nodemon
 #endif
         }
         
-        public static Color ColorField(Color p_value)
+        public static Color ColorField(Color p_value, params GUILayoutOption[] p_options)
         {
 #if UNITY_EDITOR && USE_EDITORGUI
             return UnityEditor.EditorGUILayout.ColorField(p_value);
 #else
-            UniversalGUILayout.Label("Color fields not yet supported for runtime.");
+            int thisId = GUIUtility.GetControlID("ColorField".GetHashCode(), FocusType.Keyboard) + 1;
+            if (thisId == 0)
+                return p_value;
+            
+            bool current = _currentId == thisId;
+            
+            string colorString = current ? _currentEditingString : "#"+ColorUtility.ToHtmlStringRGBA(p_value);
+
+            colorString = GUILayout.TextField(colorString, Skin.textField, p_options);
+            if (current) _currentEditingString = colorString;
+
+            if (colorString != "" && colorString != ColorUtility.ToHtmlStringRGBA(p_value))
+            {
+                Color newValue;
+                if (ColorUtility.TryParseHtmlString(colorString, out newValue) && p_value != newValue)
+                {
+                    UniversalGUI.changed = true;
+                    p_value = newValue;
+                }
+            }
+
+            if (IsActiveControl(thisId) && !current)
+            {
+                _currentId = thisId;
+                _currentEditingString = colorString;
+            }
+
+            if (!IsActiveControl(thisId) && current)
+            {
+                _currentId = -1;
+            }
+
             return p_value;
 #endif
         }
