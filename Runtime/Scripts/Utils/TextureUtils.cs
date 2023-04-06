@@ -30,7 +30,7 @@ namespace Nodemon
             return texture;
         }
         
-        public static Texture2D GetColorTexture(Color p_color)
+        public static Texture2D GetColorTexture(Color p_color, int p_width = 4, int p_height = 4)
         {
             if (_cachedColorTextures == null)
             {
@@ -42,7 +42,7 @@ namespace Nodemon
                 return _cachedColorTextures[p_color];
             }
 
-            var tex = new Texture2D(4, 4);
+            var tex = new Texture2D(p_width, p_height);
             var cols = tex.GetPixels();
             for (int i = 0; i < cols.Length; i++)
             {
