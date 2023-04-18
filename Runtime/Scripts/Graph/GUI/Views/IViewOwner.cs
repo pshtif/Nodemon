@@ -14,6 +14,8 @@ namespace Nodemon
         
         ViewConfig GetConfig();
 
+        Camera GetSceneCamera();
+
         void EditController(IGraphController p_controller, string p_path);
 
         void EditGraph(GraphBase p_graph, string p_path);

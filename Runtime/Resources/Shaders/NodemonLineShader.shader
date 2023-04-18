@@ -2,7 +2,8 @@ Shader "Hidden/Nodemon/LineShader"
 {
 SubShader 
 {
-	Blend SrcAlpha OneMinusSrcAlpha 
+	Blend SrcAlpha OneMinusSrcAlpha
+    ZTest Off 
 	ZWrite Off 
 	Cull Off 
 	Fog { Mode Off }

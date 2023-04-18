@@ -5,7 +5,6 @@
 using System;
 using OdinSerializer;
 using UnityEngine;
-using LineRenderer = Nodemon.LineRenderer;
 
 namespace Nodemon
 {
@@ -71,14 +70,14 @@ namespace Nodemon
             {
                 for (int i = 0; i < 3; ++i)
                 {
-                    LineRenderer.DrawBezier(p_startPos, p_endPos, startTan, endTan, shadowColor, null, (i + 1) * 6);
+                    LineRenderer.DrawGUIBezier(p_startPos, p_endPos, startTan, endTan, shadowColor, null, (i + 1) * 6);
                     //#if UNITY_EDITOR
                     //UnityEditor.Handles.DrawBezier(p_startPos, p_endPos, startTan, endTan, shadowColor, null, (i + 1) * 6);
                     //#endif
                 }
             }
 
-            LineRenderer.DrawBezier(p_startPos, p_endPos, startTan, endTan, p_color, null, 4);
+            LineRenderer.DrawGUIBezier(p_startPos, p_endPos, startTan, endTan, p_color, null, 4);
             //#if UNITY_EDITOR
             //UnityEditor.Handles.DrawBezier(p_startPos, p_endPos, startTan, endTan, p_color, null, 4);
             //#endif

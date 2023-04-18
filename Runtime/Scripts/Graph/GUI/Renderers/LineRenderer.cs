@@ -15,7 +15,7 @@ namespace Nodemon
 
         public static Rect customClipRect = new Rect(0,0,0,0);
         
-        private static Rect GetClippingRect()
+        private static Rect GetGUIClippingRect()
         {
             Rect clippingRect;
 #if UNITY_EDITOR
@@ -56,17 +56,17 @@ namespace Nodemon
                     : _lineTexture = TextureUtils.GetTexture("line") as Texture2D;
             }
 
-            _lineMaterial.SetTexture ("_LineTexture", p_texture);
-            _lineMaterial.SetColor ("_LineColor", p_color);
-            _lineMaterial.SetPass (0);
+            _lineMaterial.SetTexture("_LineTexture", p_texture);
+            _lineMaterial.SetColor("_LineColor", p_color);
+            _lineMaterial.SetPass(0);
         }
-        
-		public static void DrawBezier(Vector2 p_startPos, Vector2 p_endPos, Vector2 p_startTan, Vector2 p_endTan, Color p_color, Texture2D p_texture, float p_width = 1)
+
+        public static void DrawGUIBezier(Vector2 p_startPos, Vector2 p_endPos, Vector2 p_startTan, Vector2 p_endTan, Color p_color, Texture2D p_texture, float p_width = 1)
 		{
 			if (Event.current.type != EventType.Repaint)
 				return;
             
-            Rect clippingRect = GetClippingRect();
+            Rect clippingRect = GetGUIClippingRect();
             
 			clippingRect.x = clippingRect.y = 0;
 			Rect bounds = new Rect(Mathf.Min(p_startPos.x, p_endPos.x), Mathf.Min(p_startPos.y, p_endPos.y), 
@@ -77,15 +77,15 @@ namespace Nodemon
             
 			int segmentCount = CalculateBezierSegmentCount(p_startPos, p_endPos, p_startTan, p_endTan);
 
-			DrawBezier(p_startPos, p_endPos, p_startTan, p_endTan, p_color, p_texture, segmentCount, p_width);
+			DrawGUIBezier(p_startPos, p_endPos, p_startTan, p_endTan, p_color, p_texture, segmentCount, p_width);
 		}
         
-		public static void DrawBezier(Vector2 p_startPos, Vector2 p_endPos, Vector2 p_startTan, Vector2 p_endTan, Color p_color, Texture2D p_texture, int p_segmentCount, float p_width)
+		public static void DrawGUIBezier(Vector2 p_startPos, Vector2 p_endPos, Vector2 p_startTan, Vector2 p_endTan, Color p_color, Texture2D p_texture, int p_segmentCount, float p_width)
 		{
 			if (Event.current.type != EventType.Repaint && Event.current.type != EventType.KeyDown)
 				return;
 
-            Rect clippingRect = GetClippingRect();
+            Rect clippingRect = GetGUIClippingRect();
             
 			clippingRect.x = clippingRect.y = 0;
 			Rect bounds = new Rect(Mathf.Min(p_startPos.x, p_endPos.x), Mathf.Min(p_startPos.y, p_endPos.y), 
@@ -100,10 +100,10 @@ namespace Nodemon
                 bezierPoints[i] = GetBezierPoint((float)i / p_segmentCount, p_startPos, p_endPos, p_startTan, p_endTan);
             }
 
-            DrawPolygonLine(bezierPoints, p_color, p_texture, p_width);
+            DrawGUIPolygonLine(bezierPoints, p_color, p_texture, p_width);
 		}
         
-		public static void DrawPolygonLine(Vector2[] p_points, Color p_color, Texture2D p_texture, float p_width = 1)
+		public static void DrawGUIPolygonLine(Vector2[] p_points, Color p_color, Texture2D p_texture, float p_width = 1)
 		{
 			if (Event.current.type != EventType.Repaint && Event.current.type != EventType.KeyDown)
 				return;
@@ -113,25 +113,29 @@ namespace Nodemon
 
             if (p_points.Length == 2)
             {
-                DrawLine(p_points[0], p_points[1], p_color, p_texture, p_width);
+                DrawGUILine(p_points[0], p_points[1], p_color, p_texture, p_width);
+                return;
             }
-
-            SetupLineMaterial(p_texture, p_color);
-			GL.Begin (GL.TRIANGLE_STRIP);
-			GL.Color (Color.white);
             
-            Rect clippingRect = GetClippingRect();
+            SetupLineMaterial(p_texture, p_color);
+            GL.Begin(GL.TRIANGLE_STRIP);
+            GL.Color(Color.white);
+
+            Rect clippingRect = GetGUIClippingRect();
             
 			clippingRect.x = clippingRect.y = 0;
 
-			Vector2 curPoint = p_points[0], nextPoint, perpendicular;
-			bool clippedP0, clippedP1;
+            Vector2 currentPoint = p_points[0];
+            Vector2 nextPoint;
+            Vector2 perpendicular;
+			bool point1Clipped, point2Clipped;
+            
 			for (int pointCnt = 1; pointCnt < p_points.Length; pointCnt++) 
 			{
 				nextPoint = p_points[pointCnt];
                 
-				Vector2 curPointOriginal = curPoint, nextPointOriginal = nextPoint;
-				if (SegmentRectIntersection(clippingRect, ref curPoint, ref nextPoint, out clippedP0, out clippedP1))
+				Vector2 curPointOriginal = currentPoint, nextPointOriginal = nextPoint;
+				if (SegmentRectIntersection(clippingRect, ref currentPoint, ref nextPoint, out point1Clipped, out point2Clipped))
 				{
                     if (pointCnt < p_points.Length - 1)
                     {
@@ -143,31 +147,24 @@ namespace Nodemon
                         perpendicular = CalculateLinePerpendicular(curPointOriginal, nextPointOriginal);
                     }
 
-                    if (clippedP0)
-					{ 
-						//GL.End ();
-						//GL.Begin (GL.TRIANGLE_STRIP);
-						DrawLineSegment(curPoint, perpendicular * p_width/2);
-					}
+                    if (point1Clipped)
+                    {
+                        Draw2DLineSegment(currentPoint, perpendicular * p_width / 2);
+                    }
 
                     if (pointCnt == 1)
                     {
-                        DrawLineSegment(curPoint, CalculateLinePerpendicular(curPoint, nextPoint) * p_width / 2);
+                        Draw2DLineSegment(currentPoint, CalculateLinePerpendicular(currentPoint, nextPoint) * p_width / 2);
                     }
 
-                    DrawLineSegment(nextPoint, perpendicular * p_width/2);
+                    Draw2DLineSegment(nextPoint, perpendicular * p_width/2);
 				}
-				else if (clippedP1)
-				{ 
-					//GL.End ();
-					//GL.Begin(GL.TRIANGLE_STRIP);
-				}
-                
-				curPoint = nextPointOriginal;
-			}
 
-			GL.End();
-		}
+                currentPoint = nextPointOriginal;
+			}
+            
+            GL.End();
+        }
 
 
 		private static int CalculateBezierSegmentCount(Vector2 p_startPos, Vector2 p_endPos, Vector2 p_startTan, Vector2 p_endTan)
@@ -197,13 +194,13 @@ namespace Nodemon
 			float rt = 1 - p_t;
 			float rtt = rt * p_t;
 
-			return p_startPos  * rt*rt*rt + 
-				p_startTan * 3 * rt * rtt + 
-				p_endTan   * 3 * rtt * p_t + 
-				p_endPos   * p_t*p_t*p_t;
-		}
+            return p_startPos * rt * rt * rt +
+                   p_startTan * 3 * rt * rtt +
+                   p_endTan * 3 * rtt * p_t +
+                   p_endPos * p_t * p_t * p_t;
+        }
         
-		private static void DrawLineSegment(Vector2 p_point, Vector2 p_perpendicular) 
+		private static void Draw2DLineSegment(Vector2 p_point, Vector2 p_perpendicular) 
 		{
 			GL.TexCoord2 (0, 0);
 			GL.Vertex (p_point - p_perpendicular);
@@ -211,35 +208,60 @@ namespace Nodemon
 			GL.Vertex (p_point + p_perpendicular);
 		}
         
-		public static void DrawLine(Vector2 p_startPos, Vector2 p_endPos, Color p_color, Texture2D p_texture, float p_width = 1)
+        private static void Draw3DLineSegment(Vector3 p_point, Vector3 p_perpendicular) 
+        {
+            GL.TexCoord2 (0, 0);
+            GL.Vertex (p_point - p_perpendicular);
+            GL.TexCoord2 (0, 1);
+            GL.Vertex (p_point + p_perpendicular);
+        }
+        
+		public static void DrawGUILine(Vector2 p_startPos, Vector2 p_endPos, Color p_color, Texture2D p_texture, float p_width = 1)
 		{
 			if (Event.current.type != EventType.Repaint)
 				return;
 
-			// Setup
-			SetupLineMaterial (p_texture, p_color);
-			GL.Begin (GL.TRIANGLE_STRIP);
-			GL.Color (Color.white);
-			// Fetch clipping rect
+            SetupLineMaterial(p_texture, p_color);
+            GL.Begin(GL.TRIANGLE_STRIP);
+            GL.Color(Color.white);
+
+            Rect clippingRect = GetGUIClippingRect();
+            clippingRect.x = clippingRect.y = 0;
             
-            Rect clippingRect = GetClippingRect();
-            
-			clippingRect.x = clippingRect.y = 0;
-			// Clip to rect
-			if (SegmentRectIntersection(clippingRect, ref p_startPos, ref p_endPos))
-			{ // Draw with clipped line if it is visible
-				Vector2 perpWidthOffset = CalculateLinePerpendicular (p_startPos, p_endPos) * p_width / 2;
-				DrawLineSegment (p_startPos, perpWidthOffset);
-				DrawLineSegment (p_endPos, perpWidthOffset);
+            if (SegmentRectIntersection(clippingRect, ref p_startPos, ref p_endPos))
+			{
+				Vector2 perpWidthOffset = CalculateLinePerpendicular(p_startPos, p_endPos) * p_width / 2;
+				Draw2DLineSegment (p_startPos, perpWidthOffset);
+				Draw2DLineSegment (p_endPos, perpWidthOffset);
 			}
-			// Finalize drawing
-			GL.End ();
-		}
+            
+            GL.End();
+        }
+        
+        public static void Draw3DLine(Vector3 p_startPos, Vector3 p_endPos, Camera p_camera, float p_width, Color p_color, Texture2D p_texture = null)
+        {
+            SetupLineMaterial(p_texture, p_color);
+            GL.Begin(GL.TRIANGLE_STRIP);
+            GL.Color(Color.white);
+            
+            var perpendicular1 = Vector3.Cross(p_endPos - p_startPos, -p_camera.transform.forward);
+            var distance1 = p_camera.transform.position - p_startPos;
+            var size1 = p_width * distance1.magnitude / 500f;
+            var perpendicular2 = Vector3.Cross(p_startPos - p_endPos, p_camera.transform.forward);
+            var distance2 = p_camera.transform.position - p_endPos;
+            var size2 = p_width * distance2.magnitude / 500f;
+
+            Draw3DLineSegment(p_startPos, perpendicular1 * size1 / 2);
+            Draw3DLineSegment(p_endPos, perpendicular2 * size2 / 2);
+
+            GL.End();
+        }
         
 		private static bool SegmentRectIntersection(Rect p_rect, ref Vector2 p_point1, ref Vector2 p_point2)
-		{
-			bool cP0, cP1;
-			return SegmentRectIntersection (p_rect, ref p_point1, ref p_point2, out cP0, out cP1);
+        {
+            bool point1Clipped;
+            bool point2Clipped;
+			return SegmentRectIntersection(p_rect, ref p_point1, ref p_point2, out point1Clipped, out point2Clipped);
 		}
         
 		private static bool SegmentRectIntersection(Rect p_rect, ref Vector2 p_point1, ref Vector2 p_point2, out bool p_point1Clipped, out bool p_point2Clipped)

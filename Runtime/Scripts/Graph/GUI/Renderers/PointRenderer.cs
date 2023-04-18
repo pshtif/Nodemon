@@ -12,14 +12,10 @@ namespace Nodemon
     {
         private static Material _pointMaterial;
         private static Texture2D _pointTexture;
-        
-        private static Rect GetClippingRect()
-        {
-            Rect clippingRect = new Rect(0, 0, Screen.width, Screen.height);
-            return clippingRect;
-        }
-        
-        private static void SetupPointMaterial(Texture p_texture, Color p_color) 
+
+        private static bool _immediateMode;
+
+        private static void SetupPointMaterial(Color p_color, Texture p_texture) 
         {
             if (_pointMaterial == null)
             {
@@ -39,46 +35,50 @@ namespace Nodemon
                     : _pointTexture = TextureUtils.GetTexture("point") as Texture2D;
             }
 
-            _pointMaterial.SetTexture ("_PointTexture", p_texture);
-            _pointMaterial.SetColor ("_PointColor", p_color);
-            _pointMaterial.SetPass (0);
+            _pointMaterial.SetTexture("_PointTexture", p_texture);
+            _pointMaterial.SetColor("_PointColor", p_color);
+            _pointMaterial.SetPass(0);
         }
-        
-        private static void DrawLineSegment(Vector2 p_point, Vector2 p_perpendicular) 
-        {
-            GL.TexCoord2 (0, 0);
-            GL.Vertex (p_point - p_perpendicular);
-            GL.TexCoord2 (0, 1);
-            GL.Vertex (p_point + p_perpendicular);
-        }
-        
-        public static void DrawPoint(Vector2 p_position, Color p_color, Texture2D p_texture, float p_width = 1)
-        {
-            if (Event.current.type != EventType.Repaint)
-                return;
-            
-            SetupPointMaterial (p_texture, p_color);
-            GL.Begin (GL.TRIANGLE_STRIP);
-            GL.Color (Color.white);
 
-            Rect clippingRect = GetClippingRect();
-            
-            clippingRect.x = clippingRect.y = 0;
-            
-            // Removed clipping for testing now
-            //if (clippingRect.Contains(p_position))
+        public static void BeginImmediateMode(Color p_color, Texture2D p_texture = null)
+        {
+            _immediateMode = true;
+            SetupPointMaterial(p_color, p_texture);
+            GL.Begin(GL.QUADS);
+            GL.Color(Color.white);
+        }
+        
+        public static void EndImmediateMode()
+        {
+            _immediateMode = false;
+            GL.End();
+        }
+        
+        public static void DrawPoint(Vector3 p_position, float p_size, Camera p_camera, Color p_color, Texture2D p_texture = null)
+        {
+            if (!_immediateMode)
             {
-                GL.TexCoord2 (0, 0);
-                GL.Vertex (p_position + new Vector2(-p_width/2, -p_width/2));
-                GL.TexCoord2 (0, 1);
-                GL.Vertex (p_position + new Vector2(-p_width/2, p_width/2));
-                GL.TexCoord2 (1, 0);
-                GL.Vertex (p_position + new Vector2(p_width/2, -p_width/2));
-                GL.TexCoord2 (1, 1);
-                GL.Vertex (p_position + new Vector2(p_width/2, p_width/2));
+                SetupPointMaterial(p_color, p_texture);
+                GL.Begin(GL.TRIANGLE_STRIP);
+                GL.Color(Color.white);
             }
-            
-            GL.End ();
+
+            var distance = p_camera.transform.position - p_position;
+            p_size = p_size * distance.magnitude / 100f;
+
+            GL.TexCoord2 (0, 0);
+            GL.Vertex (p_position + p_camera.transform.up * p_size/2 - p_camera.transform.right * -p_size/2);
+            GL.TexCoord2 (0, 1);
+            GL.Vertex (p_position - p_camera.transform.up * p_size/2 - p_camera.transform.right * -p_size/2);
+            GL.TexCoord2 (1, 1);
+            GL.Vertex (p_position - p_camera.transform.up * p_size/2 + p_camera.transform.right * -p_size/2);
+            GL.TexCoord2 (1, 0);
+            GL.Vertex (p_position + p_camera.transform.up * p_size/2 + p_camera.transform.right * -p_size/2);
+
+            if (!_immediateMode)
+            {
+                GL.End();
+            }
         }
     }
 }
