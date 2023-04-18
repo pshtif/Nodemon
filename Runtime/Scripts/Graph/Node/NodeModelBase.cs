@@ -113,17 +113,6 @@ namespace Nodemon
                             ? groupsMinized + groupMask
                             : groupsMinized - groupMask;
                     }
-                    // GUIProperties.Separator(16, 2, 4, new Color(0.1f, 0.1f, 0.1f));
-                    // GUILayout.Label("  "+currentGroup, p_owner.GetSkin().GetStyle("PropertyGroup"), GUILayout.Width(120));
-                    // Rect lastRect = GUILayoutUtility.GetLastRect();
-                    //
-                    // if (GUI.Button(new Rect(lastRect.x + 4, lastRect.y - 25, 120, 20), (groupsMinized & groupMask) != 0 ? "+" : "-",
-                    //     minStyle))
-                    // {
-                    //     groupsMinized = (groupsMinized & groupMask) == 0
-                    //         ? groupsMinized + groupMask
-                    //         : groupsMinized - groupMask;
-                    // }
 
                     lastGroup = currentGroup;
                     lastGroupMinimized = (groupsMinized & groupMask) != 0;
