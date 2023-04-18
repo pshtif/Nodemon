@@ -13,6 +13,9 @@ namespace Nodemon
 {
     public class NodeInspectorView : ViewBase
     {
+        public int maxHeight = 380;
+        
+        private float _previousHeight = -1;
         private Vector2 scrollPosition;
 
         protected object _previouslyInspected;
@@ -63,11 +66,8 @@ namespace Nodemon
         private void DrawGraphNodeGUI(Rect p_rect) 
         {
             var selectedNode = SelectionManager.GetSelectedNode(Graph);
-            
-            InspectorHeightAttribute heightAttibute = selectedNode.GetType().GetCustomAttribute<InspectorHeightAttribute>();
-            float height = heightAttibute != null ? heightAttibute.height : 340;
 
-            Rect rect = new Rect(p_rect.width - 400, 30, 390, height);
+            Rect rect = new Rect(p_rect.width - 400, 30, 390, _previousHeight + 38);
             
             DrawBoxGUI(rect, "Properties", TextAnchor.UpperRight, Color.white);
 
@@ -85,8 +85,25 @@ namespace Nodemon
             selectedNode.DrawInspector(Owner);
             GUIProperties.fieldWidth = 0;
             
-            GUILayout.EndScrollView();
-            GUILayout.EndArea();
+            if (Event.current.type == EventType.Repaint)
+            {
+                var lastRect = GUILayoutUtility.GetLastRect();
+                GUILayout.EndScrollView();
+                GUILayout.EndArea();
+                
+                var lastHeight = Mathf.Min(lastRect.y + lastRect.height, maxHeight);
+                if (lastHeight != _previousHeight)
+                {
+                    _previousHeight = lastHeight;
+                    // Hack for faster repaint correction
+                    Owner.Repaint();
+                }
+            }
+            else
+            {
+                GUILayout.EndScrollView();
+                GUILayout.EndArea();
+            }
 
             UseEvent(rect);
         }

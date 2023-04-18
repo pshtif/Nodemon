@@ -16,6 +16,8 @@ namespace Nodemon
 
         Camera GetSceneCamera();
 
+        void Repaint();
+
         void EditController(IGraphController p_controller, string p_path);
 
         void EditGraph(GraphBase p_graph, string p_path);
