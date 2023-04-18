@@ -5,6 +5,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Scripting;
+using UniversalGUI;
 
 namespace Nodemon
 {
@@ -50,7 +51,7 @@ namespace Nodemon
         
         public static void Show(Action<Type> p_callback, Vector2 p_position)
         {
-            UniversalGUIGenericMenu menu = new UniversalGUIGenericMenu();
+            UniGUIGenericMenu menu = new UniGUIGenericMenu();
 
             foreach (Type type in SupportedBasicTypes)
             {
@@ -62,12 +63,12 @@ namespace Nodemon
                 menu.AddItem(new GUIContent("Unity/" + Variable.ConvertToTypeName(type)), false, () => p_callback(type));
             }
             
-            GenericMenuPopup.Show(menu, "", p_position, 240, 300, false, false, true);
+            UniGUIGenericMenuPopup.Show(menu, "", p_position, 240, 300, false, false, true);
         }
         
         public static void Show(Variables p_variables, Vector2 p_position)
         {
-            UniversalGUIGenericMenu menu = new UniversalGUIGenericMenu();
+            UniGUIGenericMenu menu = new UniGUIGenericMenu();
 
             foreach (Type type in SupportedBasicTypes)
             {
@@ -79,7 +80,7 @@ namespace Nodemon
                 menu.AddItem(new GUIContent("Unity/" + Variable.ConvertToTypeName(type)), false, () => p_variables.AddNewVariable(type));
             }
 
-            GenericMenuPopup.Show(menu, "", p_position, 240, 300, false, false, true);
+            UniGUIGenericMenuPopup.Show(menu, "", p_position, 240, 300, false, false, true);
         }
     }
 }

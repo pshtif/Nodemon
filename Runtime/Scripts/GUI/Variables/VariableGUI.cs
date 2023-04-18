@@ -3,6 +3,7 @@
  */
 
 using UnityEngine;
+using UniversalGUI;
 
 namespace Nodemon
 {
@@ -33,7 +34,7 @@ namespace Nodemon
             GUILayout.Space(4);
             
             GUI.color = new Color(1, .5f, 0);
-            if (UniversalGUILayout.Button("Add Variable", GUILayout.Height(24)))
+            if (UniGUILayout.Button("Add Variable", GUILayout.Height(24)))
             {
                 invalidate = true;
 #if UNITY_EDITOR
@@ -52,7 +53,7 @@ namespace Nodemon
             bool invalidate = false;
             var variable = p_variables.GetVariable(p_name);
             GUILayout.BeginHorizontal();
-            string newName = UniversalGUILayout.TextField(p_name, GUILayout.Width(120));
+            string newName = UniGUILayout.TextField(p_name, GUILayout.Width(120));
             GUILayout.Space(2);
             if (newName != p_name)
             {
@@ -71,7 +72,7 @@ namespace Nodemon
             if (GUILayout.Button(TextureUtils.GetTexture("Icons/settings_icon"), GUIStyle.none, GUILayout.Height(16), GUILayout.Width(16)))
             {
                 var menu = VariableSettingsMenu.Get(p_variables, p_name, p_bindable);
-                GenericMenuPopup.Show(menu, "", Event.current.mousePosition, 240, 300, false, false);
+                UniGUIGenericMenuPopup.Show(menu, "", Event.current.mousePosition, 240, 300, false, false);
             }
             GUILayout.EndVertical();
 

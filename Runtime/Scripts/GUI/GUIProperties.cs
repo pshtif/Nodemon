@@ -9,6 +9,8 @@ using System.Reflection;
 using OdinSerializer.Utilities;
 using Nodemon;
 using UnityEngine;
+using UniversalGUI;
+using GUI = UnityEngine.GUI;
 using Object = System.Object;
 
 namespace Nodemon
@@ -22,6 +24,8 @@ namespace Nodemon
         private static string _propertyReference;
 
         private static int labelWidth = 150;
+
+        public static int fieldWidth = 0;
 
         private static GUIStyle _parameterButtonStyle;
         private static GUIStyle ParameterButtonStyle
@@ -38,6 +42,28 @@ namespace Nodemon
             }
         }
 
+        // static public void Separator(int p_thickness, int p_paddingTop, int p_paddingBottom, Color p_color)
+        // {
+        //     #if UNITY_EDITOR
+        //     Rect rect = UnityEditor.EditorGUILayout.GetControlRect(GUILayout.Height(p_paddingTop+p_paddingBottom+p_thickness));
+        //     rect.height = p_thickness;
+        //     rect.y+=p_paddingTop;
+        //     rect.x-=2;
+        //     rect.width +=6;
+        //     UnityEditor.EditorGUI.DrawRect(rect, p_color);
+        //     #else
+        //     Debug.LogWarning("Separator not implemented for runtime.");
+        //     #endif
+        // }
+        
+        public static void Separator() {
+            var lastRect = GUILayoutUtility.GetLastRect();
+            GUILayout.Space(7);
+            GUI.color = new Color(0, 0, 0, 0.3f);
+            GUI.DrawTexture(Rect.MinMaxRect(lastRect.xMin, lastRect.yMax + 4, lastRect.xMax, lastRect.yMax + 6), Texture2D.whiteTexture);
+            GUI.color = Color.white;
+        }
+        
         static public bool PropertyField(string p_name, Object p_object, BindingFlags p_bindingFlags = BindingFlags.Default)
         {
             var field = p_object.GetType().GetField(p_name, p_bindingFlags);
@@ -69,6 +95,9 @@ namespace Nodemon
             if (IsExposedReferenceProperty(p_fieldInfo))
                 return ExposedReferenceProperty(label, p_fieldInfo, p_fieldObject, p_reference, p_propertyTable);
             
+            if (IsEditAsStringProperty(p_fieldInfo, p_parentInfo))
+                return EditAsStringProperty(p_fieldInfo, p_fieldObject, label, p_reference, p_parentInfo, p_parentObject);
+            
             return ValueProperty(label, p_fieldInfo, p_fieldObject, p_reference, p_parentInfo);
         }
 
@@ -85,11 +114,74 @@ namespace Nodemon
 
         private static GUIContent GetFieldName(FieldInfo p_nameInfo)
         {
-            string nameString = UniversalGUI.NicifyString(p_nameInfo.Name);//ObjectNames.NicifyVariableName(p_nameInfo.Name);
+            string nameString = UniGUI.NicifyString(p_nameInfo.Name);//ObjectNames.NicifyVariableName(p_nameInfo.Name);
             nameString = nameString.Substring(0, 1).ToUpper() + nameString.Substring(1);
             
             TooltipAttribute tooltipAttribute = p_nameInfo.GetCustomAttribute<TooltipAttribute>();
             return tooltipAttribute == null ? new GUIContent(nameString) : new GUIContent(nameString, tooltipAttribute.tooltip);
+        }
+        
+        static bool IsEditAsStringProperty(FieldInfo p_fieldInfo, FieldInfo p_parentInfo)
+        {
+            EditAsStringAttribute editAsStringAttribute = p_parentInfo == null
+                ? p_fieldInfo.GetCustomAttribute<EditAsStringAttribute>()
+                : p_parentInfo.GetCustomAttribute<EditAsStringAttribute>();
+            return editAsStringAttribute != null;
+        }
+
+        private static string editAsStringCache; 
+        
+        static bool EditAsStringProperty(FieldInfo p_fieldInfo, Object p_fieldObject, GUIContent p_name,
+            IReferencable p_reference, FieldInfo p_parameterInfo = null, Object p_parameterObject = null)
+        {
+            FieldInfo referenceInfo = p_parameterInfo != null ? p_parameterInfo : p_fieldInfo;
+            EditAsStringAttribute editAsStringAttribute = p_parameterInfo == null
+                ? p_fieldInfo.GetCustomAttribute<EditAsStringAttribute>()
+                : p_parameterInfo.GetCustomAttribute<EditAsStringAttribute>();
+            
+            var readMethodInfo = p_parameterObject == null
+                ? p_fieldObject.GetType().GetMethod(editAsStringAttribute.ReadMethodName,
+                    BindingFlags.Instance | BindingFlags.NonPublic)
+                : p_parameterObject.GetType().GetMethod(editAsStringAttribute.ReadMethodName,
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+
+            var writeMethodInfo = p_parameterObject == null
+                ? p_fieldObject.GetType().GetMethod(editAsStringAttribute.WriteMethodName,
+                    BindingFlags.Instance | BindingFlags.NonPublic)
+                : p_parameterObject.GetType().GetMethod(editAsStringAttribute.WriteMethodName,
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+            
+            if (readMethodInfo == null || writeMethodInfo == null)
+            {
+                Debug.LogError("Invalid methods for EditAsString attribute ("+editAsStringAttribute.ReadMethodName+","+editAsStringAttribute.WriteMethodName+")");
+            }
+            
+            UniGUI.BeginChangeCheck();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(p_name, GUILayout.Width(160));
+            
+            HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
+            
+            if (GUI.GetNameOfFocusedControl() != p_fieldInfo.Name)
+            {
+                editAsStringCache = (string)readMethodInfo.Invoke(
+                    p_parameterObject == null ? p_fieldObject : p_parameterObject,
+                    new object[0]);
+            }
+            
+            GUI.SetNextControlName(p_fieldInfo.Name);
+            editAsStringCache = GUILayout.TextArea(editAsStringCache);
+            
+            GUILayout.EndHorizontal();
+
+            if (UniGUI.EndChangeCheck())
+            {
+                writeMethodInfo.Invoke(p_parameterObject == null ? p_fieldObject : p_parameterObject,
+                    new object[] { editAsStringCache });
+                return true;
+            }
+
+            return false;
         }
         
         public static bool IsParameterProperty(FieldInfo p_fieldInfo)
@@ -107,16 +199,16 @@ namespace Nodemon
                 return true;
             }
             
-            UniversalGUI.BeginChangeCheck();
+            UniGUI.BeginChangeCheck();
             
             GUILayout.BeginHorizontal();
 
             if (parameter.isExpression)
             {
                 GUI.color = PARAMETER_COLOR;
-                UniversalGUILayout.Label(p_name, GUILayout.Width(labelWidth));
+                UniGUILayout.Label(p_name, GUILayout.Width(labelWidth));
                 HandleReferencing(p_reference, p_fieldInfo, false, parameter);
-                parameter.expression = UniversalGUILayout.TextField(parameter.expression, GUILayout.ExpandWidth(true));
+                parameter.expression = UniGUILayout.TextField(parameter.expression, GUILayout.ExpandWidth(true));
                 GUI.color = Color.white;
             }
             else
@@ -136,7 +228,7 @@ namespace Nodemon
             
             GUILayout.Space(4);
 
-            return UniversalGUI.EndChangeCheck();
+            return UniGUI.EndChangeCheck();
         }
         
         static void RecreateParameter(FieldInfo p_fieldInfo, Object p_fieldObject)
@@ -192,14 +284,14 @@ namespace Nodemon
 
         static bool EnumProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject)
         {
-            UniversalGUI.BeginChangeCheck();
+            UniGUI.BeginChangeCheck();
             
              GUILayout.BeginHorizontal();
              GUILayout.Label(p_label, GUILayout.Width(labelWidth));
-             var newValue = UniversalGUILayout.EnumPopup((Enum) p_fieldInfo.GetValue(p_fieldObject));
+             var newValue = UniGUILayout.EnumPopup((Enum) p_fieldInfo.GetValue(p_fieldObject));
              GUILayout.EndHorizontal();
             
-             if (UniversalGUI.EndChangeCheck())
+             if (UniGUI.EndChangeCheck())
              {
                  p_fieldInfo.SetValue(p_fieldObject, newValue);
                  return true;
@@ -215,25 +307,21 @@ namespace Nodemon
         
         static bool UnityObjectProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject)
         {
-            #if UNITY_EDITOR
-            UnityEditor.EditorGUI.BeginChangeCheck();
+            UniGUI.BeginChangeCheck();
             
             GUILayout.BeginHorizontal();
             GUILayout.Label(p_label, GUILayout.Width(labelWidth));
             
-            var newValue = UnityEditor.EditorGUILayout.ObjectField((UnityEngine.Object) p_fieldInfo.GetValue(p_fieldObject),
+            var newValue = UniGUILayout.ObjectField((UnityEngine.Object) p_fieldInfo.GetValue(p_fieldObject),
                 p_fieldInfo.FieldType, false);
-            
+
             GUILayout.EndHorizontal();
             
-            if (UnityEditor.EditorGUI.EndChangeCheck())
+            if (UniGUI.EndChangeCheck())
             {
                 p_fieldInfo.SetValue(p_fieldObject, newValue);
                 return true;
             }
-            #else
-            GUILayout.Label("Unity object field not supported at runtime.");
-            #endif
 
             return false;
         }
@@ -312,7 +400,7 @@ namespace Nodemon
             if (GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) &&
                 Event.current.button == 1 && Event.current.type == EventType.MouseDown)
             {
-                UniversalGUIGenericMenu menu = new UniversalGUIGenericMenu();
+                UniGUIGenericMenu menu = new UniGUIGenericMenu();
                 
                 menu.AddItem(new GUIContent("Copy reference"), false,
                     () =>
@@ -336,7 +424,7 @@ namespace Nodemon
                         () => { p_fieldInfo.SetValue(p_reference, _propertyReference); });
                 }
                 
-                GenericMenuPopup.Show(menu, "",  Event.current.mousePosition, 240, 300, false, false);
+                UniGUIGenericMenuPopup.Show(menu, "",  Event.current.mousePosition, 240, 300, false, false);
             }
         }
         
@@ -351,7 +439,7 @@ namespace Nodemon
             switch (type)
             {
                 case "System.String":
-                    UniversalGUI.BeginChangeCheck();
+                    UniGUI.BeginChangeCheck();
                     
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(p_label, GUILayout.Width(labelWidth));
@@ -359,7 +447,7 @@ namespace Nodemon
                     var stringValue = GUILayout.TextField((String) p_fieldInfo.GetValue(p_fieldObject));
                     GUILayout.EndHorizontal();
 
-                    if (UniversalGUI.EndChangeCheck())
+                    if (UniGUI.EndChangeCheck())
                     {
                         p_fieldInfo.SetValue(p_fieldObject, stringValue);
                         return true;
@@ -367,18 +455,18 @@ namespace Nodemon
                     return false;
                 
                 case "System.Int32":
-                    UniversalGUI.BeginChangeCheck();
+                    UniGUI.BeginChangeCheck();
                     
                     if (p_parentObject == null) GUILayout.BeginHorizontal();
                     
-                    UniversalGUILayout.Label(p_label,  GUILayout.Width(labelWidth));
+                    UniGUILayout.Label(p_label,  GUILayout.Width(labelWidth));
                     HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
 
                     int intValue = 0;
 
                     if (range == null)
                     {
-                        intValue = UniversalGUILayout.IntField((int) p_fieldInfo.GetValue(p_fieldObject));
+                        intValue = UniGUILayout.IntField((int) p_fieldInfo.GetValue(p_fieldObject));
                     }
                     else
                     {
@@ -388,7 +476,7 @@ namespace Nodemon
 
                     if (p_parentObject == null) GUILayout.EndHorizontal();
 
-                    if (UniversalGUI.EndChangeCheck())
+                    if (UniGUI.EndChangeCheck())
                     {
                          p_fieldInfo.SetValue(p_fieldObject, intValue);
                          return true;
@@ -396,18 +484,18 @@ namespace Nodemon
                     return false;
                 
                 case "System.Byte":
-                    UniversalGUI.BeginChangeCheck();
+                    UniGUI.BeginChangeCheck();
                     
                     if (p_parentObject == null) GUILayout.BeginHorizontal();
                     
-                    UniversalGUILayout.Label(p_label,  GUILayout.Width(labelWidth));
+                    UniGUILayout.Label(p_label,  GUILayout.Width(labelWidth));
                     HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
 
                     byte byteValue = 0;
 
                     if (range == null)
                     {
-                        byteValue = (byte)UniversalGUILayout.IntField((byte) p_fieldInfo.GetValue(p_fieldObject));
+                        byteValue = (byte)UniGUILayout.IntField((byte) p_fieldInfo.GetValue(p_fieldObject));
                     }
                     else
                     {
@@ -417,7 +505,7 @@ namespace Nodemon
 
                     if (p_parentObject == null) GUILayout.EndHorizontal();
 
-                    if (UniversalGUI.EndChangeCheck())
+                    if (UniGUI.EndChangeCheck())
                     {
                         p_fieldInfo.SetValue(p_fieldObject, byteValue);
                         return true;
@@ -425,16 +513,16 @@ namespace Nodemon
                     return false;
                 
                 case "System.Single":
-                    UniversalGUI.BeginChangeCheck();
+                    UniGUI.BeginChangeCheck();
                     
                     GUILayout.BeginHorizontal();
-                    UniversalGUILayout.Label(p_label,  GUILayout.Width(labelWidth));
+                    UniGUILayout.Label(p_label,  GUILayout.Width(labelWidth));
                     HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
 
                     float singleValue = 0;
                     if (range == null)
                     {
-                        singleValue = UniversalGUILayout.FloatField((float) p_fieldInfo.GetValue(p_fieldObject));
+                        singleValue = UniGUILayout.FloatField((float) p_fieldInfo.GetValue(p_fieldObject));
                     }
                     else
                     {
@@ -444,7 +532,7 @@ namespace Nodemon
                     
                     GUILayout.EndHorizontal();
 
-                    if (UniversalGUI.EndChangeCheck())
+                    if (UniGUI.EndChangeCheck())
                     {
                         p_fieldInfo.SetValue(p_fieldObject, singleValue);
                         return true;
@@ -453,10 +541,10 @@ namespace Nodemon
                 
                 case "System.Boolean":
                     GUILayout.BeginHorizontal();
-                    UniversalGUILayout.Label(p_label, GUILayout.Width(labelWidth));
+                    UniGUILayout.Label(p_label, GUILayout.Width(labelWidth));
                     HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
                     bool originalValue = (bool)p_fieldInfo.GetValue(p_fieldObject); 
-                    var newValue = UniversalGUILayout.Toggle("", originalValue);
+                    var newValue = UniGUILayout.Toggle("", originalValue);
                     GUILayout.EndHorizontal();
 
                     if (newValue != originalValue)
@@ -468,58 +556,58 @@ namespace Nodemon
                     return false;
                 
                 case "UnityEngine.Vector2":
-                    //EditorGUI.BeginChangeCheck();
+                    UniGUI.BeginChangeCheck();
                     
-                    // HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
-                    // var vector2Value = EditorGUILayout.Vector2Field(p_label, (Vector2) p_fieldInfo.GetValue(p_fieldObject));
-                    //
-                    // //if (EditorGUI.EndChangeCheck())
-                    // {
-                    //     p_fieldInfo.SetValue(p_fieldObject, vector2Value);
-                    //     return true;
-                    // }
+                    HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
+                    var vector2Value = UniGUILayout.Vector2Field(p_label, (Vector2) p_fieldInfo.GetValue(p_fieldObject));
+                    
+                    if (UniGUI.EndChangeCheck())
+                    {
+                        p_fieldInfo.SetValue(p_fieldObject, vector2Value);
+                        return true;
+                    }
                     return false;
                 
                 case "UnityEngine.Vector3":
-                    //EditorGUI.BeginChangeCheck();
+                    UniGUI.BeginChangeCheck();
                     
-                    // HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
-                    // var vector3Value = RuntimeEditorLayoutGUI.Vector3Field(p_label, (Vector3) p_fieldInfo.GetValue(p_fieldObject));
-                    //
-                    // //if (EditorGUI.EndChangeCheck())
-                    // {
-                    //     p_fieldInfo.SetValue(p_fieldObject, vector3Value);
-                    //     return true;
-                    // }
+                    HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
+                    var vector3Value = UniGUILayout.Vector3Field(p_label, (Vector3) p_fieldInfo.GetValue(p_fieldObject), fieldWidth);
+                    
+                    if (UniGUI.EndChangeCheck())
+                    {
+                        p_fieldInfo.SetValue(p_fieldObject, vector3Value);
+                        return true;
+                    }
                     return false;
                 
                 case "UnityEngine.Vector4":
-                    // EditorGUI.BeginChangeCheck();
-                    //
-                    // HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
-                    // var vector4Value = EditorGUILayout.Vector4Field(p_label, (Vector3) p_fieldInfo.GetValue(p_fieldObject));
-                    //
-                    // if (EditorGUI.EndChangeCheck())
-                    // {
-                    //     p_fieldInfo.SetValue(p_fieldObject, vector4Value);
-                    //     return true;
-                    // }
+                    UniGUI.BeginChangeCheck();
+                    
+                    HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
+                    var vector4Value = UniGUILayout.Vector4Field(p_label, (Vector4) p_fieldInfo.GetValue(p_fieldObject));
+                    
+                    if (UniGUI.EndChangeCheck())
+                    {
+                        p_fieldInfo.SetValue(p_fieldObject, vector4Value);
+                        return true;
+                    }
                     return false;
                 
                 case "UnityEngine.Color":
-                    // EditorGUI.BeginChangeCheck();
-                    //
-                    // GUILayout.BeginHorizontal();
-                    // GUILayout.Label(p_label, GUILayout.Width(labelWidth));
-                    // HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
-                    // var colorValue = EditorGUILayout.ColorField("", (Color) p_fieldInfo.GetValue(p_fieldObject));
-                    // GUILayout.EndHorizontal();
-                    //
-                    // if (EditorGUI.EndChangeCheck())
-                    // {
-                    //     p_fieldInfo.SetValue(p_fieldObject, colorValue);
-                    //     return true;
-                    // }
+                    UniGUI.BeginChangeCheck();
+                    
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label(p_label, GUILayout.Width(labelWidth));
+                    HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
+                    var colorValue = UniGUILayout.ColorField((Color) p_fieldInfo.GetValue(p_fieldObject));
+                    GUILayout.EndHorizontal();
+                    
+                    if (UniGUI.EndChangeCheck())
+                    {
+                        p_fieldInfo.SetValue(p_fieldObject, colorValue);
+                        return true;
+                    }
                     return false;
                 
                 default:

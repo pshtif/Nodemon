@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using Dash.NCalc.Domain;
 using L = System.Linq.Expressions;
 using System.Collections.Generic;
+using Nodemon.NCalc.Domain;
 
-namespace Dash.NCalc
+namespace Nodemon.NCalc
 {
     internal class LambdaExpressionVistor : LogicalExpressionVisitor
     {

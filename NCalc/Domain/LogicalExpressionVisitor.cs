@@ -1,5 +1,5 @@
 
-namespace Dash.NCalc.Domain
+namespace Nodemon.NCalc.Domain
 {
     public abstract class LogicalExpressionVisitor
     {

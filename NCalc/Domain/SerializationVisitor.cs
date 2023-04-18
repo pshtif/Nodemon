@@ -2,7 +2,7 @@
 using System.Text;
 using System.Globalization;
 
-namespace Dash.NCalc.Domain
+namespace Nodemon.NCalc.Domain
 {
     public class SerializationVisitor : LogicalExpressionVisitor
     {

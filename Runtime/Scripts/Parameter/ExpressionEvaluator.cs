@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Dash.NCalc;
+using Nodemon.NCalc;
 using UnityEngine;
 
 namespace Nodemon
@@ -265,7 +265,7 @@ namespace Nodemon
             {
                 _cacheFetched = true;
                 _cachedCustomFunctionClasses = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a =>
-                        a.GetTypes().Where(t => t.IsDefined(typeof(ExpressionFunctionsAttribute))))
+                        a.GetTypes().Where(t => t.IsDefined(typeof(ExpressionFunctionsAttribute), true)))
                     .ToList();
             }
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dash.NCalc
+namespace Nodemon.NCalc
 {
     public class EvaluationException : Exception
     {

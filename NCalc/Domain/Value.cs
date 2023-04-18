@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace Dash.NCalc.Domain
+namespace Nodemon.NCalc.Domain
 {
 	public class ValueExpression : LogicalExpression
 	{

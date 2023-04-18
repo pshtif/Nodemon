@@ -5,6 +5,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UniversalGUI;
+using GUI = UnityEngine.GUI;
 
 namespace Nodemon
 {
@@ -53,7 +55,7 @@ namespace Nodemon
             style.normal.background = TextureUtils.GetColorTexture(new Color(.25f, .25f, .25f, 1));
             GUILayout.BeginArea(p_rect, style);
             
-            UniversalGUIUtils.DrawTitle("Console", 13, 2);
+            UniGUIUtils.DrawTitle("Console", 13, 2);
 
             var titleStyle = new GUIStyle();
             titleStyle.alignment = TextAnchor.MiddleLeft;
@@ -67,7 +69,7 @@ namespace Nodemon
             infoStyle.alignment = TextAnchor.MiddleLeft;
             infoStyle.padding.left = 5;
 
-            var scrollViewStyle = UniversalGUI.Skin.scrollView;
+            var scrollViewStyle = UniGUI.Skin.scrollView;
             scrollViewStyle.normal.background = TextureUtils.GetColorTexture(new Color(.1f, .1f, .1f));
 
             _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, scrollViewStyle,
@@ -77,7 +79,12 @@ namespace Nodemon
             foreach (var message in _messages)
             {
                 GUI.color = message.color;
-                UniversalGUILayout.Label("["+message.time.ToString("HH:mm:ss")+"] "+message.message);
+                UniGUILayout.Label("["+message.time.ToString("HH:mm:ss")+"] "+message.message);
+                if (!message.extendedMessage.IsNullOrWhitespace())
+                {
+                    UniGUILayout.Label("[INFO] " + message.extendedMessage);
+                }
+
                 GUI.color = Color.white;
             }
             
@@ -99,12 +106,12 @@ namespace Nodemon
 
             GUILayout.BeginHorizontal();
             
-            if (UniversalGUILayout.Button("COMMAND LINE", GUILayout.Height(24)))
+            if (UniGUILayout.Button("COMMAND LINE", GUILayout.Height(24)))
             {
                 _commandLineEnabled = !_commandLineEnabled;
             }
             
-            if (UniversalGUILayout.Button("CLEAR", GUILayout.Height(24)))
+            if (UniGUILayout.Button("CLEAR", GUILayout.Height(24)))
             {
                 _messages.Clear();
             }
@@ -135,7 +142,7 @@ namespace Nodemon
                         visible = false;
                         break;
                     default:
-                        AddMessage(new ConsoleMessage("Unknown command " + command, Color.red));
+                        AddMessage(new ConsoleMessage("Unknown command " + command, "", Color.red));
                         break;
                 }
             }

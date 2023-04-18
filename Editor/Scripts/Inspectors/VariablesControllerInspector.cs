@@ -6,7 +6,7 @@
 using Nodemon;
 using UnityEditor;
 
-namespace Dash
+namespace Nodemon
 {
     [CustomEditor(typeof(VariablesController))]
     public class VariablesControllerInspector : UnityEditor.Editor

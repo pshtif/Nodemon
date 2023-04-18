@@ -2,7 +2,8 @@
     "name": "Nodemon",
     "rootNamespace": "",
     "references": [
-        "GUID:b96db29da3cc6a85aba51e6e3a352d1f"
+        "GUID:b96db29da3cc6a85aba51e6e3a352d1f",
+        "GUID:20eb5b62aeb1ca344ab9b3cda6c69174"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dash.NCalc
+namespace Nodemon.NCalc
 {
     // Summary:
     //     Provides enumerated values to use to set evaluation options.

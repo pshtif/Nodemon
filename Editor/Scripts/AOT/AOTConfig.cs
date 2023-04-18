@@ -15,11 +15,11 @@ namespace Nodemon.Editor
     [Serializable]
     public class AOTConfig : ScriptableObject, ISerializationCallbackReceiver
     {
-        public static string name = "AOTConfig"; 
+        public static string fileName = "AOTConfig"; 
         
         public static AOTConfig Create()
         {
-            AOTConfig config = (AOTConfig) AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/" + name + ".asset",
+            AOTConfig config = (AOTConfig) AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/" + fileName + ".asset",
                 typeof(AOTConfig));
             
             if (config == null)
@@ -36,7 +36,7 @@ namespace Nodemon.Editor
                     {
                         AssetDatabase.CreateFolder("Assets/Resources", "Editor");
                     }
-                    AssetDatabase.CreateAsset(config, "Assets/Resources/Editor/" + name + ".asset");
+                    AssetDatabase.CreateAsset(config, "Assets/Resources/Editor/" + fileName + ".asset");
                     AssetDatabase.SaveAssets();
                     AssetDatabase.Refresh();
                 }

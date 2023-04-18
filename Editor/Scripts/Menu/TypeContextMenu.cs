@@ -5,6 +5,7 @@
 #if UNITY_EDITOR
 using System;
 using UnityEngine;
+using UniversalGUI;
 
 namespace Nodemon.Editor
 { 
@@ -27,14 +28,14 @@ namespace Nodemon.Editor
             _lastMousePosition = GUIUtility.GUIToScreenPoint(Event.current.mousePosition);
             #endif
 
-            GenericMenuPopup.Show(Get(p_callback), "Select Type",  _lastMousePosition, 300, 300, true, false);
+            UniGUIGenericMenuPopup.Show(Get(p_callback), "Select Type",  _lastMousePosition, 300, 300, true, false);
         }
         
-        static public UniversalGUIGenericMenu Get(Action<object> p_callback)
+        static public UniGUIGenericMenu Get(Action<object> p_callback)
         {
-            UniversalGUIGenericMenu menu = new UniversalGUIGenericMenu();
+            UniGUIGenericMenu menu = new UniGUIGenericMenu();
 
-            Type[] loadedTypes = ReflectionUtils.GetAllTypes();
+            Type[] loadedTypes = TypeUtils.GetAllTypes();
             foreach (Type type in loadedTypes)
             {
                 string path =

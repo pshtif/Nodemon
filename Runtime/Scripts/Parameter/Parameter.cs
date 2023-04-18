@@ -5,7 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Dash.NCalc;
+using Nodemon.NCalc;
+using UniversalGUI;
 
 namespace Nodemon
 {
@@ -59,7 +60,7 @@ namespace Nodemon
             return GetType().GetField("_value", BindingFlags.NonPublic | BindingFlags.Instance);
         }
         
-        public T GetValue(IParameterResolver p_resolver, IAttributeDataCollection p_collection = null, bool p_referenced = false)
+        public T GetValue(IParameterResolver p_resolver, IAttributeDataCollection p_collection = null, int p_index = 0, bool p_referenced = false)
         {
             if (!p_referenced)
             {

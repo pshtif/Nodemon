@@ -1,4 +1,4 @@
-namespace Dash.NCalc.Domain
+namespace Nodemon.NCalc.Domain
 {
 	public class Function : LogicalExpression
 	{

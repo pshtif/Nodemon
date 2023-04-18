@@ -6,6 +6,7 @@ using System;
 
 namespace Nodemon
 {
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
     public class DependencyAttribute : Attribute
     {
         public object Value { get; }

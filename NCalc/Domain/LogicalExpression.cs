@@ -2,7 +2,7 @@ using System;
 using Antlr.Runtime.Tree;
 using System.Text;
 
-namespace Dash.NCalc.Domain
+namespace Nodemon.NCalc.Domain
 {
     public abstract class LogicalExpression
     {

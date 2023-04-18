@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Security.Cryptography;
 
-namespace Dash.NCalc
+namespace Nodemon.NCalc
 {
     public class Numbers
     {

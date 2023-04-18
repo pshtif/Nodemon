@@ -6,14 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UniversalGUI;
 
 namespace Nodemon
 {
     public class VariableSettingsMenu
     {
-        public static UniversalGUIGenericMenu Get(Variables p_variables, string p_name, IVariableBindable p_bindable)
+        public static UniGUIGenericMenu Get(Variables p_variables, string p_name, IVariableBindable p_bindable)
         {
-            UniversalGUIGenericMenu menu = new UniversalGUIGenericMenu();
+            UniGUIGenericMenu menu = new UniGUIGenericMenu();
 
             var variable = p_variables.GetVariable(p_name);
             if (variable.IsBound)

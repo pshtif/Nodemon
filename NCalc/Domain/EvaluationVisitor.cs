@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Dash.NCalc.Domain
+namespace Nodemon.NCalc.Domain
 {
 
 
