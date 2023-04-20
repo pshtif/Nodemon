@@ -13,8 +13,10 @@ namespace Nodemon
     {
         static private Type[] SupportedBasicTypes =
         {
+            typeof(bool),
             typeof(int),
             typeof(float),
+            typeof(string),
             typeof(Vector3),
             typeof(Vector2),
             typeof(Quaternion)
