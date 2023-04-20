@@ -66,7 +66,6 @@ namespace Nodemon
             var oldColor = GUI.color;
             GUI.color = variable.IsBound || variable.IsLookup ? Color.yellow : Color.gray;
             
-            GUILayout.FlexibleSpace();
             GUILayout.BeginVertical(GUILayout.Width(16));
             GUILayout.Space(2);
             if (GUILayout.Button(TextureUtils.GetTexture("Icons/settings_icon"), GUIStyle.none, GUILayout.Height(16), GUILayout.Width(16)))

@@ -317,7 +317,7 @@ namespace Nodemon
                     {
                         case "System.String":
                             UniGUI.BeginChangeCheck();
-                            var stringValue = UniGUILayout.TextField((string)valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            var stringValue = UniGUILayout.TextField((string)valueField.GetValue(this), GUILayout.ExpandWidth(true));
                             if (UniGUI.EndChangeCheck())
                             {
                                 invalidate = true;
@@ -335,7 +335,7 @@ namespace Nodemon
                             break;
                         case "System.Int32":
                             UniGUI.BeginChangeCheck();
-                            var intValue = UniGUILayout.IntField((int)valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            var intValue = UniGUILayout.IntField((int)valueField.GetValue(this), GUILayout.ExpandWidth(true));
                             if (UniGUI.EndChangeCheck())
                             {
                                 invalidate = true;
@@ -346,7 +346,7 @@ namespace Nodemon
                             // value = (T) Convert.ChangeType(EditorGUILayout.FloatField(Convert.ToSingle(value)),
                             //     typeof(T));
                             UniGUI.BeginChangeCheck();
-                            var floatValue = UniGUILayout.FloatField((float)valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            var floatValue = UniGUILayout.FloatField((float)valueField.GetValue(this),GUILayout.ExpandWidth(true));
                             if (UniGUI.EndChangeCheck())
                             {
                                 invalidate = true;
@@ -355,7 +355,7 @@ namespace Nodemon
                             break;
                         case "UnityEngine.Vector2":
                             UniGUI.BeginChangeCheck();
-                            var vector2Value = UniGUILayout.Vector2Field("", (Vector2) valueField.GetValue(this), GUILayout.MaxWidth(p_maxWidth), GUILayout.ExpandWidth(true));
+                            var vector2Value = UniGUILayout.Vector2Field("", (Vector2) valueField.GetValue(this), GUILayout.ExpandWidth(true));
                             if (UniGUI.EndChangeCheck())
                             {
                                 invalidate = true;
@@ -364,7 +364,7 @@ namespace Nodemon
                             break;
                         case "UnityEngine.Vector3":
                             UniGUI.BeginChangeCheck();
-                            var vector3Value = UniGUILayout.Vector3Field(GUIContent.none, (Vector3) valueField.GetValue(this), p_maxWidth, GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            var vector3Value = UniGUILayout.Vector3Field(GUIContent.none, (Vector3) valueField.GetValue(this), p_maxWidth, GUILayout.ExpandWidth(true));
                             if (UniGUI.EndChangeCheck())
                             {
                                 invalidate = true;
@@ -373,7 +373,7 @@ namespace Nodemon
                             break;
                         case "UnityEngine.Vector4":
                             UniGUI.BeginChangeCheck();
-                            var vector4Value = UniGUILayout.Vector4Field("", (Vector4) valueField.GetValue(this), GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            var vector4Value = UniGUILayout.Vector4Field("", (Vector4) valueField.GetValue(this), GUILayout.ExpandWidth(true));
                             if (UniGUI.EndChangeCheck())
                             {
                                 invalidate = true;
@@ -384,7 +384,7 @@ namespace Nodemon
                             UniGUI.BeginChangeCheck();
                             Quaternion q = (Quaternion) valueField.GetValue(this);
                             Vector4 v4 = new Vector4(q.x, q.y, q.z, q.w);
-                            v4 = UniGUILayout.Vector4Field("", v4, GUILayout.Width(p_maxWidth), GUILayout.ExpandWidth(true));
+                            v4 = UniGUILayout.Vector4Field("", v4, GUILayout.ExpandWidth(true));
                             if (UniGUI.EndChangeCheck())
                             {
                                 valueField.SetValue(this, new Quaternion(v4.x, v4.y, v4.z, v4.w));
