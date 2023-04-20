@@ -246,10 +246,10 @@ namespace Nodemon
             
             var perpendicular1 = Vector3.Cross(p_endPos - p_startPos, -p_camera.transform.forward);
             var distance1 = p_camera.transform.position - p_startPos;
-            var size1 = p_width * distance1.magnitude / 500f;
+            var size1 = p_width * distance1.magnitude / 100f;
             var perpendicular2 = Vector3.Cross(p_startPos - p_endPos, p_camera.transform.forward);
             var distance2 = p_camera.transform.position - p_endPos;
-            var size2 = p_width * distance2.magnitude / 500f;
+            var size2 = p_width * distance2.magnitude / 100f;
 
             Draw3DLineSegment(p_startPos, perpendicular1 * size1 / 2);
             Draw3DLineSegment(p_endPos, perpendicular2 * size2 / 2);
