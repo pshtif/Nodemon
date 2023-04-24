@@ -4,10 +4,10 @@
 
 using System;
 
-namespace Machina.Attributes
+namespace Nodemon.Attributes
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class CustomGraphViewAttribute : Attribute
+    public class CustomEditorView : Attribute
     {
     }
 }
