@@ -22,7 +22,7 @@ namespace Nodemon
         [NonSerialized] 
         public bool hasErrorsInExecution = false;
         [NonSerialized] 
-        public string errorMessageInExecution = "";
+        public string errorInExecutionMessage = "";
         
         [NonSerialized] 
         private bool _attributesInitialized = false;
@@ -136,7 +136,7 @@ namespace Nodemon
 
         public virtual void Remove() { }
 
-        protected bool IsException(NodeFlowData p_flowData, string p_variableName, bool p_endsInError = true)
+        protected bool IsException(IAttributeDataCollection p_flowData, string p_variableName, bool p_endsInError = true)
         {
             if (!p_flowData.HasAttribute(p_variableName))
             {
@@ -206,7 +206,35 @@ namespace Nodemon
 
         protected abstract void InitializeCustomAttributes();
 
-        protected T GetParameterValue<T>(Parameter<T> p_parameter, NodeFlowData p_flowData = null, int p_index = 0)
+        protected T GetParameterValue<T>(Parameter<T> p_parameter) 
+        {
+            if (p_parameter == null)
+                return default(T);
+            
+            T value = p_parameter.GetValue(GetParameterResolver());
+            if (!hasErrorsInExecution && p_parameter.hasErrorInEvaluation)
+            {
+                SetError(p_parameter.errorMessage);
+            }
+            hasErrorsInExecution = hasErrorsInExecution || p_parameter.hasErrorInEvaluation;
+            return value;
+        } 
+        
+        protected object GetParameterValue<K>(Parameter p_parameter, Type p_parameterType, NodeFlowData<K> p_flowData = null, int p_index = 0) where K : DataAttribute
+        {
+            if (p_parameter == null)
+                return null;
+            
+            object value = p_parameter.GetValue(GetParameterResolver(), p_parameterType, p_flowData, p_index);
+            if (!hasErrorsInExecution && p_parameter.hasErrorInEvaluation)
+            {
+                SetError(p_parameter.errorMessage);
+            }
+            hasErrorsInExecution = hasErrorsInExecution || p_parameter.hasErrorInEvaluation;
+            return value;
+        }
+        
+        protected T GetParameterValue<T, K>(Parameter<T> p_parameter, NodeFlowData<K> p_flowData = null, int p_index = 0) where K : DataAttribute
         {
             if (p_parameter == null)
                 return default(T);
@@ -222,24 +250,11 @@ namespace Nodemon
         
         protected void SetError(string p_warning = null)
         {
-            if (!string.IsNullOrEmpty(p_warning))
-            {
-                Debug.LogWarning(p_warning+" on node " + _model.id);
-            }
+            errorInExecutionMessage = p_warning;
             hasErrorsInExecution = true;
         }
-        
-        protected NodeFlowData GetInputData(int p_index, bool p_execute = false)
-        {
-            return Graph.GetInputData(this, p_index, p_execute);
-        }
-        
-        protected NodeFlowData[] GetInputDatas(int p_index, bool p_execute = false)
-        {
-            return Graph.GetInputDatas(this, p_index, p_execute);
-        }
-        
-        protected bool CheckException(NodeFlowData p_flowData, string p_variableName)
+
+        protected bool CheckException(IAttributeDataCollection p_flowData, string p_variableName)
         {
             if (!p_flowData.HasAttribute(p_variableName))
             {
@@ -520,8 +535,13 @@ namespace Nodemon
                 GUI.color = Color.red;
                 GUI.Box(new Rect(p_rect.x - 2, p_rect.y - 2, p_rect.width + 4, p_rect.height + 4),
                     "",  p_owner.GetSkin().GetStyle("NodeSelected"));
-                GUI.DrawTexture(new Rect(p_rect.x + 2, p_rect.y - 22, 16, 16),
-                    TextureUtils.GetTexture("Icons/error_icon"));
+                if (GUI.Button(new Rect(p_rect.x + 2, p_rect.y - 22, 16, 16),
+                        TextureUtils.GetTexture("Icons/error_icon")))
+                {
+                    Debug.Log("Execution error: " + errorInExecutionMessage);
+                }
+                // GUI.DrawTexture(new Rect(p_rect.x + 2, p_rect.y - 22, 16, 16),
+                //     TextureUtils.GetTexture("Icons/error_icon"));
             }
         }
         
