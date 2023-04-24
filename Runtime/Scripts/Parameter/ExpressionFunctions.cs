@@ -270,28 +270,55 @@ namespace Nodemon
             return true;
         }
         
-        private static bool Scale<T>(FunctionArgs p_args)
+        private static bool Scale(FunctionArgs p_args)
         {
             object[] evalParams = p_args.EvaluateParameters();
             
-            if (typeof(T) == typeof(Vector2))
+            if (evalParams.Length != 2)
             {
-                evalParams = p_args.EvaluateParameters();
+                errorMessage = "Invalid parameters for Scale function.";
+                return false;
+            }
+
+            if (evalParams[0] == null)
+            {
+                errorMessage = "Invalid parameters for Scale function. First parameter is null.";
+                return false;
+            }
+
+            if (evalParams[0].GetType() == typeof(Vector2))
+            {
                 p_args.HasResult = true;
                 p_args.Result = (Vector2)evalParams[0] * Convert.ToSingle(evalParams[1]);
                 return true;
             } 
             
-            if (typeof(T) == typeof(Vector3))
+            if (evalParams[0].GetType() == typeof(Vector3))
             {
-                evalParams = p_args.EvaluateParameters();
                 p_args.HasResult = true;
                 p_args.Result = (Vector3)evalParams[0] * Convert.ToSingle(evalParams[1]);
                 return true;
             }
 
-            errorMessage = "Scale function for type " + typeof(T) + " is not implemented.";
+            errorMessage = "Scale function for type " + evalParams[0].GetType() + " is not implemented.";
             return false;
         }
+
+        private static bool Get(FunctionArgs p_args)
+        {
+            object[] evalParams = p_args.EvaluateParameters();
+
+            evalParams = p_args.EvaluateParameters();
+
+            if (evalParams.Length != 2)
+            {
+                errorMessage = "Invalid parameters for Get function.";
+                return false;
+            }
+
+            p_args.HasResult = true;
+            p_args.Result = ((Array)evalParams[0]).GetValue((int)evalParams[1]);
+            return true;
+        } 
     }
 }

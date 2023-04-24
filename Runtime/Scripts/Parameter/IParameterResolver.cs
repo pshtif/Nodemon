@@ -12,6 +12,6 @@ namespace Nodemon
         
         string errorMessage { get; }
         
-        object Resolve(string p_name, bool p_referenced, IAttributeDataCollection p_collection = null, int p_index = 0);
+        object Resolve<K>(string p_name, bool p_referenced, IAttributeDataCollection<K> p_collection = null, int p_index = 0) where K : DataAttribute;
     }
 }

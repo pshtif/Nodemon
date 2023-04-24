@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Nodemon.NCalc;
 using UnityEngine;
 
@@ -23,79 +24,70 @@ namespace Nodemon
         public static bool hasErrorInEvaluation { get; protected set; } = false;
         public static string errorMessage;
         
-        private static Dictionary<string, MethodInfo> _methodCache = new Dictionary<string, MethodInfo>();
+        private static Dictionary<string, MethodInfo> _functionMethodsCache = new Dictionary<string, MethodInfo>();
 
-        private static Dictionary<string,Expression> _cachedExpressions;
+        private static Dictionary<string,Expression> _expressionsCache;
+
+        private static Dictionary<Type, MethodInfo> _typedMethodsCache = new Dictionary<Type, MethodInfo>();
 
         public static void ClearCache()
         {
-            _cachedExpressions = new Dictionary<string, Expression>();
+            _expressionsCache = new Dictionary<string, Expression>();
         }
 
-        public static object EvaluateTypedExpression(string p_expression, Type p_returnType, IParameterResolver p_resolver, IAttributeDataCollection p_collection = null)
+        public static object EvaluateTypedExpression<K>(string p_expression, Type p_returnType, IParameterResolver p_resolver, bool p_referenced, IAttributeDataCollection<K> p_collection = null, int p_index = 0) where K : DataAttribute
         {
-            MethodInfo method = typeof(ExpressionEvaluator).GetMethod("EvaluateExpression", BindingFlags.Public | BindingFlags.Static);
-            MethodInfo generic = method.MakeGenericMethod(p_returnType);
-            return generic.Invoke(null, new object[] { p_expression, p_resolver, p_collection });
-        }
-        
-        public static object EvaluateUntypedExpression(string p_expression, IParameterResolver p_resolver, IAttributeDataCollection p_collection, bool p_referenced)
-        {
-            hasErrorInEvaluation = false;
-            if (_cachedExpressions == null) _cachedExpressions = new Dictionary<string, Expression>();
-
-            Expression cachedExpression;
-            if (!_cachedExpressions.ContainsKey(p_expression))
+            MethodInfo typed;
+            if (_typedMethodsCache.ContainsKey(p_returnType))
             {
-                cachedExpression = new Expression(p_expression);
-                _cachedExpressions.Add(p_expression, cachedExpression);
+                typed = _typedMethodsCache[p_returnType];
             }
             else
             {
-                cachedExpression = _cachedExpressions[p_expression];
+                MethodInfo method = typeof(ExpressionEvaluator).GetMethod("EvaluateExpression",
+                    BindingFlags.Public | BindingFlags.Static);
+                typed = method.MakeGenericMethod(p_returnType, typeof(K));
+                _typedMethodsCache[p_returnType] = typed;
             }
-            
-            EvaluateFunctionHandler evalFunction = (name, args) => EvaluateFunction(name, args);
-            cachedExpression.EvaluateFunction += evalFunction; 
-            EvaluateParameterHandler evalParam = (name, args) => EvaluateParameter(name, args, p_resolver, p_referenced, p_collection);
-            cachedExpression.EvaluateParameter += evalParam;
-            
-            object obj = null;
-            try
-            {
-                obj = cachedExpression.Evaluate();
-            }
-            catch (Exception e)
-            {
-                errorMessage = e.Message;
-                hasErrorInEvaluation = true;
-            }
-            
-            cachedExpression.EvaluateFunction -= evalFunction;
-            cachedExpression.EvaluateParameter -= evalParam;
 
-            return obj;
+            return typed.Invoke(null, new object[] { p_expression, p_resolver, p_referenced, p_collection, p_index });
         }
-        
-        public static T EvaluateExpression<T>(string p_expression, IParameterResolver p_resolver, bool p_referenced, IAttributeDataCollection p_collection = null)
+
+        // private static List<String> ExtractSubExpressions(string p_expression)
+        // {
+        //     Debug.Log("ExtractSubExpressions");
+        //     Regex regex = new Regex(@"\[(?=.*?\()(.*?\((.*?)\).*?)\]");
+        //     MatchCollection matches = regex.Matches(p_expression);
+        //     foreach (Match match in matches) {
+        //         Debug.Log(match.Groups.Count);
+        //         string expressionInsideSquareBrackets = match.Groups[1].Value;
+        //         string expressionInsideParentheses = match.Groups[2].Value;
+        //         Debug.Log("Expression inside square brackets: " + expressionInsideSquareBrackets);
+        //         Debug.Log("Expression inside parentheses: " + expressionInsideParentheses);
+        //     }
+        //
+        //     return null;
+        // }
+
+        public static T EvaluateExpression<T,K>(string p_expression, IParameterResolver p_resolver, bool p_referenced, IAttributeDataCollection<K> p_collection = null, int p_index = 0) where K : DataAttribute
         {
             hasErrorInEvaluation = false;
-            if (_cachedExpressions == null) _cachedExpressions = new Dictionary<string, Expression>();
+            if (_expressionsCache == null) _expressionsCache = new Dictionary<string, Expression>();
 
             Expression cachedExpression;
-            if (!_cachedExpressions.ContainsKey(p_expression))
+            if (!_expressionsCache.ContainsKey(p_expression))
             {
                 cachedExpression = new Expression(p_expression);
-                _cachedExpressions.Add(p_expression, cachedExpression);
+                _expressionsCache.Add(p_expression, cachedExpression);
             }
             else
             {
-                cachedExpression = _cachedExpressions[p_expression];
+                cachedExpression = _expressionsCache[p_expression];
             }
 
             EvaluateFunctionHandler evalFunction = (name, args) => EvaluateFunction<T>(name, args);
             cachedExpression.EvaluateFunction += evalFunction; 
-            EvaluateParameterHandler evalParam = (name, args) => EvaluateParameter(name, args, p_resolver, p_referenced, p_collection);
+            EvaluateParameterHandler evalParam = (name, args) => EvaluateParameter(name, args, p_resolver, p_referenced, p_collection, p_index);
             cachedExpression.EvaluateParameter += evalParam;
             
             object obj = null;
@@ -147,7 +139,7 @@ namespace Nodemon
             return default(T);
         }
 
-        static void EvaluateParameter(string p_name, ParameterArgs p_args, IParameterResolver p_resolver, bool p_referenced, IAttributeDataCollection p_collection)
+        static void EvaluateParameter<K>(string p_name, ParameterArgs p_args, IParameterResolver p_resolver, bool p_referenced, IAttributeDataCollection<K> p_collection, int p_index) where K : DataAttribute
         {
             if (p_resolver == null)
             {
@@ -156,7 +148,7 @@ namespace Nodemon
             }
             else
             {
-                p_args.Result = p_resolver.Resolve(p_name, p_referenced, p_collection);
+                p_args.Result = p_resolver.Resolve(p_name, p_referenced, p_collection, p_index);
 
                 if (!hasErrorInEvaluation && p_resolver.hasErrorInResolving)
                 {
@@ -172,9 +164,9 @@ namespace Nodemon
             //Debug.Log("EvaluateFunction("+p_name+","+p_args+")");
             MethodInfo methodInfo = null;
 
-            if (_methodCache.ContainsKey(p_name))
+            if (_functionMethodsCache.ContainsKey(p_name))
             {
-                methodInfo = _methodCache[p_name];
+                methodInfo = _functionMethodsCache[p_name];
             } else {
                 methodInfo = typeof(ExpressionFunctions).GetMethod(p_name,
                     BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Public);
@@ -184,7 +176,7 @@ namespace Nodemon
                     methodInfo = GetCustomFunction(p_name);
                 }
                 
-                if (methodInfo != null) _methodCache.Add(p_name, methodInfo);
+                if (methodInfo != null) _functionMethodsCache.Add(p_name, methodInfo);
             }
 
             if (methodInfo != null)
@@ -201,48 +193,6 @@ namespace Nodemon
                 {
                     errorMessage = ExpressionFunctions.errorMessage;
                 }
-                hasErrorInEvaluation = hasErrorInEvaluation || !success;
-            }
-            else
-            {
-                if (!hasErrorInEvaluation)
-                {
-                    errorMessage = "Function " + p_name + " not found";
-                }
-
-                hasErrorInEvaluation = true;
-            }
-        }
-        
-        static void EvaluateFunction(string p_name, FunctionArgs p_args)
-        {
-            MethodInfo methodInfo = null;
-            if (_methodCache.ContainsKey(p_name))
-            {
-                methodInfo = _methodCache[p_name];
-            }
-            else
-            {
-                methodInfo = typeof(ExpressionFunctions).GetMethod(p_name,
-                    BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Public);
-
-                if (methodInfo == null && enableCustomExpressionClasses)
-                {
-                    methodInfo = GetCustomFunction(p_name);
-                }
-                
-                if (methodInfo != null) _methodCache.Add(p_name, methodInfo);
-            }
-
-            if (methodInfo != null)
-            {
-                // TODO maybe typize the args but it would probably just slow things down
-                bool success = (bool)methodInfo.Invoke(null, new object[] {p_args});
-                if (!hasErrorInEvaluation && !success)
-                {
-                    errorMessage = ExpressionFunctions.errorMessage;
-                }
-                
                 hasErrorInEvaluation = hasErrorInEvaluation || !success;
             }
             else
