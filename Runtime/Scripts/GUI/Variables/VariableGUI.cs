@@ -19,7 +19,7 @@ namespace Nodemon
         
         public static bool DrawVariablesInspector(string p_title, Variables p_variables, IVariableBindable p_bindable, float p_maxWidth)
         {
-            DrawTitle(p_title, 13);
+            if (p_title != "") DrawTitle(p_title, 13);
 
             int index = 0;
             bool invalidate = false;

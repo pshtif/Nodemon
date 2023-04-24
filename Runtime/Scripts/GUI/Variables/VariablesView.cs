@@ -20,7 +20,8 @@ namespace Nodemon
         
         protected void DrawVariablesGUI(Vector2 p_position, bool p_global, Color p_color, Variables p_variables, ref bool p_minimized, IVariableBindable p_bindable) 
         {
-            Rect rect = new Rect(p_position.x, p_position.y, 380, p_minimized ? 32 : 192);
+            int height = p_variables.Count <= 10 ? 64 + p_variables.Count * 22 : 64 + 220; 
+            Rect rect = new Rect(p_position.x, p_position.y, 380, p_minimized ? 32 : height);
             DrawBoxGUI(rect, p_global ? "Global Variables" : "Graph Variables", TextAnchor.UpperCenter, p_color);
 
             var minStyle = new GUIStyle();
@@ -53,7 +54,7 @@ namespace Nodemon
             }
 #endif
 
-            GUILayout.BeginArea(new Rect(rect.x+5, rect.y+30, rect.width-10, rect.height-59));
+            GUILayout.BeginArea(new Rect(rect.x+5, rect.y+30, rect.width-10, rect.height-62));
             scrollPosition = GUILayout.BeginScrollView(scrollPosition, false, false);
 
             UniGUI.BeginChangeCheck();

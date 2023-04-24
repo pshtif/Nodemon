@@ -85,6 +85,11 @@ namespace Nodemon
 
             if (IsParameterProperty(p_fieldInfo))
                 return ParameterProperty(label, p_fieldInfo, p_fieldObject, p_reference);
+            
+            if (p_fieldInfo.FieldType == typeof(Type))
+            {
+                return SupportedTypeProperty(label, p_fieldInfo, p_fieldObject);
+            }
 
             if (IsEnumProperty(p_fieldInfo))
                 return EnumProperty(label, p_fieldInfo, p_fieldObject);
@@ -275,6 +280,33 @@ namespace Nodemon
                 return false;
 
             return true;
+        }
+        
+        static bool SupportedTypeProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject)
+        {
+            Type value = (Type)p_fieldInfo.GetValue(p_fieldObject);
+
+            GUILayout.BeginHorizontal();
+            
+            GUILayout.Label(p_label, GUILayout.Width(labelWidth));
+
+            var mousePosition = Event.current.mousePosition;
+            if (GUILayout.Button(value == null ? "NONE" : value.Name))
+            {
+                VariableTypesMenu.Show((type) =>
+                {
+                    if (type != value)
+                    {
+                        p_fieldInfo.SetValue(p_fieldObject, type);
+                    }    
+                }, mousePosition);
+                
+                return true;
+            }
+
+            GUILayout.EndHorizontal();
+
+            return false;
         }
 
         static bool IsEnumProperty(FieldInfo p_fieldInfo)
