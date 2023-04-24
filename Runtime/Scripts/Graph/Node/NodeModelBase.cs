@@ -91,18 +91,21 @@ namespace Nodemon
             }
 
             var isMinimized = (groupsMinized & 1) != 0;
-            UniGUIUtils.DrawMinimizableTitle("  " + GetCustomInspectorName(), ref isMinimized, 13);
-
-            if (isMinimized != ((groupsMinized & 1) != 0))
+            if (HasCustomInspector())
             {
-                groupsMinized = (groupsMinized & 1) == 0
-                    ? groupsMinized + 1
-                    : groupsMinized - 1;
-            }
+                UniGUIUtils.DrawMinimizableTitle("  " + GetCustomInspectorName(), ref isMinimized, 13);
 
-            if (!isMinimized)
-            {
-                invalidate = invalidate || DrawCustomInspector(p_owner);
+                if (isMinimized != ((groupsMinized & 1) != 0))
+                {
+                    groupsMinized = (groupsMinized & 1) == 0
+                        ? groupsMinized + 1
+                        : groupsMinized - 1;
+                }
+
+                if (!isMinimized)
+                {
+                    invalidate = invalidate || DrawCustomInspector(p_owner);
+                }
             }
 
             var fields = this.GetType().GetFields();
@@ -149,6 +152,11 @@ namespace Nodemon
             }
 
             return invalidate;
+        }
+
+        public bool HasCustomInspector()
+        {
+            return GetType().GetMethod("DrawCustomInspector").DeclaringType != typeof(NodeModelBase);
         }
 
         public virtual string GetCustomInspectorName()
