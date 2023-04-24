@@ -36,12 +36,15 @@ namespace Nodemon
             return clippingRect;
         }
 
-        private static void SetupLineMaterial(Texture p_texture, Color p_color) 
+        public static void SetupLineMaterial(Texture p_texture, Color p_color, bool p_zTest) 
         {
             if (_lineMaterial == null)
             {
-                Shader lineShader = Shader.Find("Hidden/Nodemon/LineShader");
-                if (lineShader == null)
+	            Shader lineShader = p_zTest
+		            ? Shader.Find("Hidden/Nodemon/LineShaderZTest")
+		            : Shader.Find("Hidden/Nodemon/LineShader");
+
+	            if (lineShader == null)
                 {
                     throw new Exception("LineShader is missing.");
                 }
@@ -117,7 +120,7 @@ namespace Nodemon
                 return;
             }
             
-            SetupLineMaterial(p_texture, p_color);
+            SetupLineMaterial(p_texture, p_color, true);
             GL.Begin(GL.TRIANGLE_STRIP);
             GL.Color(Color.white);
 
@@ -221,7 +224,7 @@ namespace Nodemon
 			if (Event.current.type != EventType.Repaint)
 				return;
 
-            SetupLineMaterial(p_texture, p_color);
+            SetupLineMaterial(p_texture, p_color, false);
             GL.Begin(GL.TRIANGLE_STRIP);
             GL.Color(Color.white);
 
@@ -240,10 +243,9 @@ namespace Nodemon
         
         public static void Draw3DLine(Vector3 p_startPos, Vector3 p_endPos, Camera p_camera, float p_width, Color p_color, Texture2D p_texture = null)
         {
-            SetupLineMaterial(p_texture, p_color);
+            SetupLineMaterial(p_texture, p_color, true);
             GL.Begin(GL.TRIANGLE_STRIP);
             GL.Color(Color.white);
-            
             var perpendicular1 = Vector3.Cross(p_endPos - p_startPos, -p_camera.transform.forward);
             var distance1 = p_camera.transform.position - p_startPos;
             var size1 = p_width * distance1.magnitude / 100f;
@@ -256,8 +258,8 @@ namespace Nodemon
 
             GL.End();
         }
-        
-		private static bool SegmentRectIntersection(Rect p_rect, ref Vector2 p_point1, ref Vector2 p_point2)
+
+        private static bool SegmentRectIntersection(Rect p_rect, ref Vector2 p_point1, ref Vector2 p_point2)
         {
             bool point1Clipped;
             bool point2Clipped;

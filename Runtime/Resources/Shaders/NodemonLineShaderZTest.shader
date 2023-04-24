@@ -1,9 +1,9 @@
-Shader "Hidden/Nodemon/LineShader" 
+Shader "Hidden/Nodemon/LineShaderZTest" 
 {
 SubShader 
 {
 	Blend SrcAlpha OneMinusSrcAlpha
-    ZTest Always
+    ZTest Less
 	ZWrite Off 
 	Cull Off 
 	Fog { Mode Off }
