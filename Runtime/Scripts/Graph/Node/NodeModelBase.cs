@@ -34,6 +34,7 @@ namespace Nodemon
         [TitledGroup("Advanced", 1000, true)]
         public string comment;
 
+        [Seed]
         [TitledGroup("Advanced", 1000, true)]
         public Parameter<int> seed;
         

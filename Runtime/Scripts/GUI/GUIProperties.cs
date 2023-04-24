@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using OdinSerializer.Utilities;
-using Nodemon;
+using Nodemon.Attributes;
 using UnityEngine;
 using UniversalGUI;
 using GUI = UnityEngine.GUI;
@@ -82,7 +82,10 @@ namespace Nodemon
                 return false;
             
             var label = GetFieldName(p_parentInfo != null ? p_parentInfo : p_fieldInfo);
-
+            
+            if (IsSeedProperty(p_fieldInfo))
+                return SeedProperty(label, p_fieldInfo, p_fieldObject, p_reference);
+                
             if (IsParameterProperty(p_fieldInfo))
                 return ParameterProperty(label, p_fieldInfo, p_fieldObject, p_reference);
             
@@ -189,12 +192,83 @@ namespace Nodemon
             return false;
         }
         
+        public static bool IsSeedProperty(FieldInfo p_fieldInfo)
+        {
+            var seedAttribute = p_fieldInfo.GetCustomAttribute<SeedAttribute>();
+            return seedAttribute != null;
+        }
+
+        static bool SeedProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject, IReferencable p_reference)
+        {
+            bool invalidate = false;
+            var seedAttribute = p_fieldInfo.GetCustomAttribute<SeedAttribute>();
+            
+            GUILayout.BeginHorizontal();
+
+            if (IsParameterProperty(p_fieldInfo))
+            {
+                ParameterProperty(p_label, p_fieldInfo, p_fieldObject, p_reference);
+                
+                if (GUILayout.Button(TextureUtils.GetTexture("Icons/retry_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
+                {
+                    var random = new System.Random();
+                    if (p_fieldInfo.FieldType == typeof(Parameter<int>))
+                    {
+                        Parameter<int> intParameter = (Parameter<int>)p_fieldInfo.GetValue(p_fieldObject);
+                        intParameter.value = random.Next((int)seedAttribute.minValue, (int)seedAttribute.maxValue);
+                    } else if (p_fieldInfo.FieldType == typeof(Parameter<float>))
+                    {
+                        Parameter<float> floatParameter = (Parameter<float>)p_fieldInfo.GetValue(p_fieldObject);
+                        floatParameter.value =
+                            (float)random.NextDouble() * (seedAttribute.maxValue - seedAttribute.minValue) +
+                            seedAttribute.minValue;
+                    } else if (p_fieldInfo.FieldType == typeof(Parameter<double>))
+                    {
+                        Parameter<double> doubleParameter = (Parameter<double>)p_fieldInfo.GetValue(p_fieldObject);
+                        doubleParameter.value =
+                            random.NextDouble() * (seedAttribute.maxValue - seedAttribute.minValue) +
+                            seedAttribute.minValue;
+                    }
+                    invalidate = true;
+                }
+            }
+            else
+            {
+                ValueProperty(p_label, p_fieldInfo, p_fieldObject, p_reference);
+                
+                if (GUILayout.Button(TextureUtils.GetTexture("Icons/retry_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
+                {
+                    var random = new System.Random();
+                    if (p_fieldInfo.FieldType == typeof(int))
+                    {
+                        p_fieldInfo.SetValue(p_fieldObject,
+                            random.Next((int)seedAttribute.minValue, (int)seedAttribute.maxValue));
+                    } else if (p_fieldInfo.FieldType == typeof(float))
+                    {
+                        p_fieldInfo.SetValue(p_fieldObject,
+                            (float)random.NextDouble() * (seedAttribute.maxValue - seedAttribute.minValue) +
+                            seedAttribute.minValue);
+                    } else if (p_fieldInfo.FieldType == typeof(double))
+                    {
+                        p_fieldInfo.SetValue(p_fieldObject,
+                            random.NextDouble() * (seedAttribute.maxValue - seedAttribute.minValue) +
+                            seedAttribute.minValue);
+                    }
+                    invalidate = true;
+                }
+            }
+
+            GUILayout.EndHorizontal();
+            
+            return invalidate;
+        } 
+        
         public static bool IsParameterProperty(FieldInfo p_fieldInfo)
         {
             return typeof(Parameter).IsAssignableFrom(p_fieldInfo.FieldType);
         }
         
-        static bool ParameterProperty(GUIContent p_name, FieldInfo p_fieldInfo, Object p_fieldObject, IReferencable p_reference)
+        static bool ParameterProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject, IReferencable p_reference)
         {
             Parameter parameter = (Parameter)p_fieldInfo.GetValue(p_fieldObject);
             
@@ -211,7 +285,7 @@ namespace Nodemon
             if (parameter.isExpression)
             {
                 GUI.color = PARAMETER_COLOR;
-                UniGUILayout.Label(p_name, GUILayout.Width(labelWidth));
+                UniGUILayout.Label(p_label, GUILayout.Width(labelWidth));
                 HandleReferencing(p_reference, p_fieldInfo, false, parameter);
                 parameter.expression = UniGUILayout.TextField(parameter.expression, GUILayout.ExpandWidth(true));
                 GUI.color = Color.white;

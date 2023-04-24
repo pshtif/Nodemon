@@ -536,7 +536,7 @@ namespace Nodemon
                 GUI.Box(new Rect(p_rect.x - 2, p_rect.y - 2, p_rect.width + 4, p_rect.height + 4),
                     "",  p_owner.GetSkin().GetStyle("NodeSelected"));
                 if (GUI.Button(new Rect(p_rect.x + 2, p_rect.y - 22, 16, 16),
-                        TextureUtils.GetTexture("Icons/error_icon")))
+                        TextureUtils.GetTexture("Icons/error_icon"), GUIStyle.none))
                 {
                     Debug.Log("Execution error: " + errorInExecutionMessage);
                 }
