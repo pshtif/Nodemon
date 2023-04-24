@@ -16,7 +16,7 @@ namespace Nodemon
         public int maxHeight = 380;
         
         private float _previousHeight = -1;
-        private Vector2 scrollPosition;
+        private Vector2 _scrollPosition;
 
         protected object _previouslyInspected;
 
@@ -53,7 +53,7 @@ namespace Nodemon
 
             GUILayout.BeginArea(new Rect(rect.x+5, rect.y+30, rect.width-10, rect.height-35));
 
-            scrollPosition = GUILayout.BeginScrollView(scrollPosition, false, false);
+            _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, false, false);
 
             GraphBox.selectedBox.DrawInspector(Owner);
 
@@ -79,7 +79,7 @@ namespace Nodemon
             var inspectorRect = new Rect(rect.x + 5, rect.y + 30, rect.width - 10, rect.height - 35);
             GUILayout.BeginArea(inspectorRect);
             
-            scrollPosition = GUILayout.BeginScrollView(scrollPosition, false, false);
+            _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, false, false);
 
             GUIProperties.fieldWidth = 190;
             selectedNode.DrawInspector(Owner);

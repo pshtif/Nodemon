@@ -12,7 +12,7 @@ namespace Nodemon
 {
     public class SubGraphNodeModel<T> : NodeModelBase where T : GraphBase
     {
-        [Hide]
+        [HideInInspector]
         public bool useAsset = false;
         
         [Dependency("useAsset", true)]

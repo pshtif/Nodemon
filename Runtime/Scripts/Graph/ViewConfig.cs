@@ -38,6 +38,8 @@ namespace Nodemon
         
         public bool showNodeIds = false;
         
+        public bool showSpreadsheet = false;
+        
         public bool deleteNull;
     }
 }

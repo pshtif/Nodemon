@@ -24,7 +24,7 @@ namespace Nodemon
 
         public bool moveNodes = true;
         
-        [Hide]
+        [HideInInspector]
         public Rect rect;
 
         public Rect titleRect => new Rect(rect.x, rect.y, rect.width, 45);
@@ -136,7 +136,7 @@ namespace Nodemon
             {
                 if (field.IsConstant() || field.IsStatic) continue;
                 
-                HideAttribute ha = field.GetCustomAttribute<HideAttribute>();
+                HideInInspector ha = field.GetCustomAttribute<HideInInspector>();
                 if (ha != null)
                     continue;
 

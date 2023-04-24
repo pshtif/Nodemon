@@ -25,6 +25,7 @@ namespace Nodemon
         {
             GUIStyle style = Owner.GetSkin().GetStyle("ViewBase");
             style.alignment = p_titleAlignment;
+            style.richText = true;
             
             switch (p_titleAlignment)
             {

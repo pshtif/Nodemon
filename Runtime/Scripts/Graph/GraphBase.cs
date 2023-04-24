@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using OdinSerializer;
 using OdinSerializer.Utilities;
 using UnityEngine;
@@ -110,6 +111,8 @@ namespace Nodemon
         }
 
         public abstract void ExecuteInputs(NodeBase p_node, bool p_initSeed);
+        
+        public abstract Task ExecuteInputsAsync(NodeBase p_node, bool p_initSeed);
 
         public bool HasOutputConnected(NodeBase p_node, int p_index)
         {
@@ -136,10 +139,6 @@ namespace Nodemon
             Connections.RemoveAll(c => c.outputNode == p_node || c.inputNode == p_node);
         }
 
-        public abstract NodeFlowData GetInputData(NodeBase p_node, int p_index, bool p_execute = false);
-
-        public abstract NodeFlowData[] GetInputDatas(NodeBase p_node, int p_index, bool p_execute = false);
-        
         public void DeleteNode(NodeBase p_node)
         {
             _connections.RemoveAll(c => c.inputNode == p_node || c.outputNode == p_node);
