@@ -8,6 +8,14 @@ namespace Nodemon
 {
     public interface IViewOwner
     {
+        void SetTooltip(string p_tooltip);
+        
+        string GetTooltip();
+        
+        void SetStatus(string p_status);
+
+        string GetStatus();
+        
         void SetDirty(bool p_dirty);
 
         GUISkin GetSkin();

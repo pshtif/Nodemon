@@ -46,7 +46,7 @@ namespace Nodemon
             GUI.color = Color.white;
         }
         
-        public virtual void ProcessEvent(Event p_event, Rect p_rect) { }
+        public virtual void ProcessMouse(Event p_event, Rect p_rect) { }
 
         protected void UseEvent(Rect p_rect)
         {

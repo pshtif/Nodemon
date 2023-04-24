@@ -4,6 +4,7 @@
 
 using System.Linq;
 using UnityEngine;
+using UniversalGUI;
 
 namespace Nodemon
 {
@@ -23,7 +24,6 @@ namespace Nodemon
 
         // Textures
         private Texture _backgroundTexture;
-        private Texture _whiteRectTexture;
 
         private GraphViewMenu _graphViewMenu;
 
@@ -32,7 +32,6 @@ namespace Nodemon
             if (!_initialized)
             {
                 _backgroundTexture = Resources.Load<Texture>("Textures/graph_background");
-                _whiteRectTexture = Resources.Load<Texture>("Textures/white_rect_64");
                 GUIScaleUtils.CheckInit();
                 _graphViewMenu = new GraphViewMenu(this);
                 _initialized = true;
@@ -70,6 +69,8 @@ namespace Nodemon
             DrawCustomGUI(Owner, p_event, p_rect);
 
             DrawTitle(p_rect);
+
+            DrawStatusbar(p_rect);
         }
 
         protected abstract void DrawCustomGUI(IViewOwner p_owner, Event p_event, Rect p_rect);
@@ -95,7 +96,7 @@ namespace Nodemon
             if (_dragging == DraggingType.SELECTION)
             {
                 GUI.color = new Color(1, 1, 1, 0.1f);
-                GUI.DrawTextureWithTexCoords(_selectedRegion, _whiteRectTexture, new Rect(0,0,64,64), true);
+                GUI.DrawTextureWithTexCoords(_selectedRegion, TextureUtils.GetColorTexture(Color.white), new Rect(0,0,64,64), true);
                 GUI.color = Color.white;
             }
         }
@@ -142,7 +143,7 @@ namespace Nodemon
             // Draw title background
             Rect titleRect = new Rect(0, 0, p_rect.width, 24);
             GUI.color = new Color(0.1f, 0.1f, .1f, .8f);
-            GUI.DrawTexture(titleRect, _whiteRectTexture);
+            GUI.DrawTexture(titleRect, TextureUtils.GetColorTexture(Color.white));
             GUI.color = Color.white;
 
             // Draw graph name
@@ -187,11 +188,30 @@ namespace Nodemon
 
             _graphViewMenu.Draw(Graph);
         }
-
-        public override void ProcessEvent(Event p_event, Rect p_rect)
+        
+        void DrawStatusbar(Rect p_rect)
         {
+            // Draw title background
+            GUI.color = new Color(0.1f, 0.1f, .1f, .8f);
+            GUI.DrawTexture(new Rect(0, p_rect.height - 22, p_rect.width, 22), TextureUtils.GetColorTexture(Color.white));
+            GUI.color = Color.white;
+
+            // Draw graph name
+            GUIStyle style = new GUIStyle();
+            style.alignment = TextAnchor.MiddleLeft;
+            style.normal.textColor = new Color(.8f, .8f, .8f);
+            GUI.Label(new Rect(4, p_rect.height - 22, p_rect.width - 8, 22), new GUIContent(Owner.GetTooltip().IsNullOrWhitespace() ? Owner.GetStatus() : Owner.GetTooltip()), style);
+        }
+
+        public override void ProcessMouse(Event p_event, Rect p_rect)
+        {
+            if (!p_event.isMouse && !p_event.isScrollWheel)
+                return;
+            
             if (Graph == null || !p_rect.Contains(p_event.mousePosition))
                 return;
+
+            ProcessMouseMove(Owner, p_event, p_rect);
             
             ProcessMouseWheel(p_event, p_rect);
             
@@ -205,6 +225,24 @@ namespace Nodemon
             if (SelectionManager.connectingNode != null)
             {
                 Owner.SetDirty(true);
+            }
+        }
+
+        void ProcessMouseMove(IViewOwner p_owner, Event p_event, Rect p_rect)
+        {
+            var mousePosition = p_event.mousePosition * Graph.zoom - new Vector2(p_rect.x, p_rect.y);
+            NodeBase hitNode;
+            ConnectorType connectorType;
+            int connectorIndex;
+            Graph.HitsNode(p_owner, mousePosition, out hitNode, out connectorType, out connectorIndex);
+
+            if (hitNode != null && hitNode.hasErrorsInExecution)
+            {
+                p_owner.SetTooltip(hitNode.errorInExecutionMessage);
+            }
+            else
+            {
+                p_owner.SetTooltip("");
             }
         }
 
