@@ -83,15 +83,38 @@ namespace Nodemon
             minStyle.normal.textColor = Color.white;
             minStyle.fontSize = 16;
             
+            bool invalidate = false;
+            if (initializeMinimization && (groupsMinized & 1) == 0)
+            {
+                groupsMinized += 1;
+            }
+
+            var isMinimized = (groupsMinized & 1) != 0;
+            UniGUIUtils.DrawMinimizableTitle("  " + GetCustomInspectorName(), ref isMinimized, 13);
+
+            if (isMinimized != ((groupsMinized & 1) != 0))
+            {
+                groupsMinized = (groupsMinized & 1) == 0
+                    ? groupsMinized + 1
+                    : groupsMinized - 1;
+            }
+
+            if (!isMinimized)
+            {
+                invalidate = invalidate || DrawCustomInspector(p_owner);
+            }
+
             var fields = this.GetType().GetFields();
             Array.Sort(fields, NodeSort.GroupSort);
             string lastGroup = "";
             bool lastGroupMinimized = false;
-            bool invalidate = false;
-            int groupIndex = 0;
+            int groupIndex = 1;
             foreach (var field in fields)
             {
-                if (field.IsConstant()) continue;
+                if (field.GetCustomAttribute<HideInInspector>() != null)
+                    continue;
+                if (field.IsConstant()) 
+                    continue;
 
                 TitledGroupAttribute ga = field.GetCustomAttribute<TitledGroupAttribute>();
                 string currentGroup = ga != null ? ga.Group : "Properties";
@@ -104,7 +127,7 @@ namespace Nodemon
                         groupsMinized += groupMask;
                     }
 
-                    var isMinimized = (groupsMinized & groupMask) != 0;
+                    isMinimized = (groupsMinized & groupMask) != 0;
                     UniGUIUtils.DrawMinimizableTitle("  " + currentGroup, ref isMinimized, 13);
 
                     if (isMinimized != ((groupsMinized & groupMask) != 0))
@@ -124,11 +147,14 @@ namespace Nodemon
                 invalidate = invalidate || GUIProperties.PropertyField(field, this, this);
             }
 
-            invalidate = invalidate || DrawCustomInspector(p_owner);
-
             return invalidate;
         }
 
+        public virtual string GetCustomInspectorName()
+        {
+            return "Properties";
+        }
+        
         public virtual bool DrawCustomInspector(IViewOwner p_owner)
         {
             return false;
