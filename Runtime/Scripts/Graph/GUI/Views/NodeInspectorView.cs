@@ -34,18 +34,18 @@ namespace Nodemon
             
             if (selectedNode != null)
             {
-                DrawGraphNodeGUI(p_rect);
+                DrawNodeGUI(p_rect);
                 if (_previouslyInspected != selectedNode) GUI.FocusControl("");
                 _previouslyInspected = selectedNode;
             } else if (GraphBox.selectedBox != null)
             {
-                DrawGraphBoxGUI(p_rect);
+                DrawBoxGUI(p_rect);
                 if (_previouslyInspected != GraphBox.selectedBox) GUI.FocusControl("");
                 _previouslyInspected = GraphBox.selectedBox;
             }
         }
 
-        private void DrawGraphBoxGUI(Rect p_rect)
+        private void DrawBoxGUI(Rect p_rect)
         {
             Rect rect = new Rect(p_rect.width - 400, 30, 390, 340);
             
@@ -63,7 +63,7 @@ namespace Nodemon
             UseEvent(rect);
         }
 
-        private void DrawGraphNodeGUI(Rect p_rect) 
+        private void DrawNodeGUI(Rect p_rect) 
         {
             var selectedNode = SelectionManager.GetSelectedNode(Graph);
 
@@ -84,7 +84,7 @@ namespace Nodemon
             GUIProperties.fieldWidth = 190;
             selectedNode.DrawInspector(Owner);
             GUIProperties.fieldWidth = 0;
-            
+
             if (Event.current.type == EventType.Repaint)
             {
                 var lastRect = GUILayoutUtility.GetLastRect();
