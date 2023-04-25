@@ -2,6 +2,8 @@
  *	Created by:  Peter @sHTiF Stefcek
  */
 
+using System;
+
 namespace Nodemon
 {
     public class DataAttribute
@@ -18,10 +20,10 @@ namespace Nodemon
             {
                 clone.value = value;
             }
-            
-            if (value.GetType() == typeof(int[]))
+
+            if (typeof(ICloneable).IsAssignableFrom(value.GetType()))
             {
-                clone.value = ((int[])value).Clone();
+                clone.value = ((ICloneable)value).Clone();
             }
 
             return clone;
