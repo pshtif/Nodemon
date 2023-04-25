@@ -473,17 +473,6 @@ namespace Nodemon
                     IconTexture);
             }
         }
-        
-        // protected void DrawScriptButton(Rect p_rect)
-        // {
-        //     #if UNITY_EDITOR
-        //     if (GUI.Button(new Rect(p_rect.x+8, p_rect.y + p_rect.height - 24, 16, 16),
-        //             TextureUtils.GetTexture("Icons/script_icon"), GUIStyle.none))
-        //     {
-        //         UnityEditor.AssetDatabase.OpenAsset(EditorUtils.GetScriptFromType(GetType()), 1);
-        //     }
-        //     #endif
-        // }
 
         protected void DrawId(IViewOwner p_owner, Rect p_rect)
         {
