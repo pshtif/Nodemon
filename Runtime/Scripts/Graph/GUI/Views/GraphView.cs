@@ -376,7 +376,7 @@ namespace Nodemon
                 }
             }
             
-            if (p_event.type == EventType.MouseDrag)
+            if (p_event.type == EventType.MouseDrag && p_event.button == 0)
             {
                 switch (_dragging)
                 {
