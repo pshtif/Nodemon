@@ -19,7 +19,7 @@ namespace Nodemon.Editor
         
         public static AOTConfig Create()
         {
-            AOTConfig config = (AOTConfig) AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/" + fileName + ".asset",
+            AOTConfig config = (AOTConfig) AssetDatabase.LoadAssetAtPath("Assets/Editor/Resources" + fileName + ".asset",
                 typeof(AOTConfig));
             
             if (config == null)
@@ -27,16 +27,16 @@ namespace Nodemon.Editor
                 config = ScriptableObject.CreateInstance<AOTConfig>();
                 if (config != null)
                 {
-                    if (!AssetDatabase.IsValidFolder("Assets/Resources"))
+                    if (!AssetDatabase.IsValidFolder("Assets/Editor/Resources"))
                     {
-                        AssetDatabase.CreateFolder("Assets", "Resources");
-                        AssetDatabase.CreateFolder("Assets/Resources", "Editor");
+                        AssetDatabase.CreateFolder("Assets", "Editor");
+                        AssetDatabase.CreateFolder("Assets/Editor", "Resources");
                     } 
-                    else if (!AssetDatabase.IsValidFolder("Assets/Resources/Editor"))
+                    else if (!AssetDatabase.IsValidFolder("Assets/Editor/Resources"))
                     {
-                        AssetDatabase.CreateFolder("Assets/Resources", "Editor");
+                        AssetDatabase.CreateFolder("Assets/Editor", "Resources");
                     }
-                    AssetDatabase.CreateAsset(config, "Assets/Resources/Editor/" + fileName + ".asset");
+                    AssetDatabase.CreateAsset(config, "Assets/Editor/Resources/" + fileName + ".asset");
                     AssetDatabase.SaveAssets();
                     AssetDatabase.Refresh();
                 }
