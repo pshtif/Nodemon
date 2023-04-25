@@ -243,7 +243,7 @@ namespace Nodemon
         
         public static void Draw3DLine(Vector3 p_startPos, Vector3 p_endPos, Camera p_camera, float p_width, Color p_color, Texture2D p_texture = null)
         {
-            SetupLineMaterial(p_texture, p_color, true);
+            SetupLineMaterial(p_texture, p_color, false);
             GL.Begin(GL.TRIANGLE_STRIP);
             GL.Color(Color.white);
             var perpendicular1 = Vector3.Cross(p_endPos - p_startPos, -p_camera.transform.forward);
