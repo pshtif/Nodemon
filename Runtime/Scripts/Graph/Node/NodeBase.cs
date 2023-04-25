@@ -406,7 +406,7 @@ namespace Nodemon
             return typeString.Substring(dotIndex + 1, typeString.Length-(dotIndex+5));
         }
 
-        protected virtual void MarkDirty()
+        public virtual void MarkDirty()
         {
             IsDirty = true;
         }
@@ -651,6 +651,8 @@ namespace Nodemon
         {
             bool invalidate = _model.DrawInspector(p_owner);
             invalidate = invalidate || DrawCustomInspector(p_owner);
+            
+            GUILayout.Space(2);
             
             if (invalidate)
             {
