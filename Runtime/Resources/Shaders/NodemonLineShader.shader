@@ -21,12 +21,14 @@ SubShader
 		{
 			float2 texcoord : TEXCOORD0;
 			float4 vertex : POSITION;
+        	float4 color : COLOR;
 		};
 		
 		struct VertexOutput
 		{
 			float2 texcoord : TEXCOORD0;
 			float4 vertex : POSITION;
+			float4 color : COLOR;
 		};
 
 		VertexOutput vert (VertexInput IN)
@@ -34,12 +36,13 @@ SubShader
 			VertexOutput o;
 			o.vertex = UnityObjectToClipPos(IN.vertex);
 			o.texcoord = IN.texcoord;
+			o.color = IN.color;
 			return o;
 		}
 
 		float4 frag (VertexOutput IN) : COLOR
 		{
-			return _LineColor * tex2D(_LineTexture, IN.texcoord);
+			return _LineColor * IN.color * tex2D(_LineTexture, IN.texcoord);
 		}
 		ENDCG
 	}

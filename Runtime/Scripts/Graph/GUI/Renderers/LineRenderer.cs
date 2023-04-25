@@ -11,6 +11,7 @@ namespace Nodemon
     public static class LineRenderer
     {
         private static Material _lineMaterial;
+        private static Material _lineMaterialZTest;
         private static Texture2D _lineTexture;
 
         public static Rect customClipRect = new Rect(0,0,0,0);
@@ -36,20 +37,24 @@ namespace Nodemon
             return clippingRect;
         }
 
-        public static void SetupLineMaterial(Texture p_texture, Color p_color, bool p_zTest) 
+        public static void SetupLineMaterial(Color p_color, bool p_zTest, Texture p_texture = null)
         {
+	        if (_lineMaterialZTest == null)
+	        {
+		        Shader lineShader = Shader.Find("Hidden/Nodemon/LineShaderZTest");
+	            if (lineShader == null)
+		            throw new Exception("LineShaderZTest is missing.");
+
+	            _lineMaterialZTest = new Material(lineShader);
+            }
+	        
             if (_lineMaterial == null)
             {
-	            Shader lineShader = p_zTest
-		            ? Shader.Find("Hidden/Nodemon/LineShaderZTest")
-		            : Shader.Find("Hidden/Nodemon/LineShader");
-
+	            Shader lineShader = Shader.Find("Hidden/Nodemon/LineShader");
 	            if (lineShader == null)
-                {
-                    throw new Exception("LineShader is missing.");
-                }
+		            throw new Exception("LineShader is missing.");
 
-                _lineMaterial = new Material(lineShader);
+	            _lineMaterial = new Material(lineShader);
             }
             
             if (p_texture == null)
@@ -59,9 +64,18 @@ namespace Nodemon
                     : _lineTexture = TextureUtils.GetTexture("line") as Texture2D;
             }
 
-            _lineMaterial.SetTexture("_LineTexture", p_texture);
-            _lineMaterial.SetColor("_LineColor", p_color);
-            _lineMaterial.SetPass(0);
+            if (p_zTest)
+            {
+	            _lineMaterialZTest.SetTexture("_LineTexture", p_texture);
+	            _lineMaterialZTest.SetColor("_LineColor", p_color);
+	            _lineMaterialZTest.SetPass(0);
+            }
+            else
+            {
+	            _lineMaterial.SetTexture("_LineTexture", p_texture);
+	            _lineMaterial.SetColor("_LineColor", p_color);
+	            _lineMaterial.SetPass(0);
+            }
         }
 
         public static void DrawGUIBezier(Vector2 p_startPos, Vector2 p_endPos, Vector2 p_startTan, Vector2 p_endTan, Color p_color, Texture2D p_texture, float p_width = 1)
@@ -120,7 +134,7 @@ namespace Nodemon
                 return;
             }
             
-            SetupLineMaterial(p_texture, p_color, true);
+            SetupLineMaterial(p_color, false, p_texture);
             GL.Begin(GL.TRIANGLE_STRIP);
             GL.Color(Color.white);
 
@@ -224,7 +238,7 @@ namespace Nodemon
 			if (Event.current.type != EventType.Repaint)
 				return;
 
-            SetupLineMaterial(p_texture, p_color, false);
+            SetupLineMaterial(p_color, false, p_texture);
             GL.Begin(GL.TRIANGLE_STRIP);
             GL.Color(Color.white);
 
@@ -243,16 +257,18 @@ namespace Nodemon
         
         public static void Draw3DLine(Vector3 p_startPos, Vector3 p_endPos, Camera p_camera, float p_width, Color p_color, Texture2D p_texture = null)
         {
-            SetupLineMaterial(p_texture, p_color, false);
+            SetupLineMaterial(p_color, false, p_texture);
+
             GL.Begin(GL.TRIANGLE_STRIP);
             GL.Color(Color.white);
+            
             var perpendicular1 = Vector3.Cross(p_endPos - p_startPos, -p_camera.transform.forward);
             var distance1 = p_camera.transform.position - p_startPos;
-            var size1 = p_width * distance1.magnitude / 100f;
+            var size1 = p_width * distance1.magnitude / 200f;
             var perpendicular2 = Vector3.Cross(p_startPos - p_endPos, p_camera.transform.forward);
             var distance2 = p_camera.transform.position - p_endPos;
-            var size2 = p_width * distance2.magnitude / 100f;
-
+            var size2 = p_width * distance2.magnitude / 200f;
+            
             Draw3DLineSegment(p_startPos, perpendicular1 * size1 / 2);
             Draw3DLineSegment(p_endPos, perpendicular2 * size2 / 2);
 

@@ -59,7 +59,7 @@ namespace Nodemon
             if (!_immediateMode)
             {
                 SetupPointMaterial(p_color, p_texture);
-                GL.Begin(GL.TRIANGLE_STRIP);
+                GL.Begin(GL.TRIANGLES);
                 GL.Color(Color.white);
             }
 
