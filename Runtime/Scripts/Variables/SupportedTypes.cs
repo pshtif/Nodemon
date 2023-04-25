@@ -3,13 +3,14 @@
  */
 
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Scripting;
 using UniversalGUI;
 
 namespace Nodemon
 {
-    public class VariableTypesMenu
+    public class SupportedTypes
     {
         static private Type[] SupportedBasicTypes =
         {
@@ -33,6 +34,30 @@ namespace Nodemon
             // typeof(Button),
             // typeof(Canvas),
         };
+
+        public static Type[] GetSupportedTypes()
+        {
+            var types = new Type[SupportedBasicTypes.Length + SupportedUnityTypes.Length];
+            SupportedBasicTypes.CopyTo(types, 0);
+            SupportedUnityTypes.CopyTo(types, SupportedBasicTypes.Length);
+            return types;
+        }
+        
+        public static string[] GetSupportedTypeNames()
+        {
+            string[] names = new string[SupportedBasicTypes.Length + SupportedUnityTypes.Length];
+            for (int i = 0; i<SupportedBasicTypes.Length; i++)
+            {
+                names[i] = "Basic/" + Variable.ConvertToTypeName(SupportedBasicTypes[i]);
+            }
+            
+            for (int i = 0; i<SupportedUnityTypes.Length; i++)
+            {
+                names[SupportedBasicTypes.Length + i] = "Unity/" + Variable.ConvertToTypeName(SupportedUnityTypes[i]);
+            }
+
+            return names;
+        }
         
         [Preserve]
         static void AOTInject()
@@ -49,27 +74,27 @@ namespace Nodemon
             aot.AddVariable<Color>("Color", Color.white);
         }
         
-        public static void Show(Action<Type> p_callback, Vector2 p_position)
-        {
-            UniGUIGenericMenu menu = new UniGUIGenericMenu();
-
-            foreach (Type type in SupportedBasicTypes)
-            {
-                menu.AddItem(new GUIContent("Basic/" + Variable.ConvertToTypeName(type)), false, () => p_callback(type));
-            }
-            
-            foreach (Type type in SupportedUnityTypes)
-            {
-                menu.AddItem(new GUIContent("Unity/" + Variable.ConvertToTypeName(type)), false, () => p_callback(type));
-            }
-            
-            UniGUIGenericMenuPopup.Show(menu, "", p_position, 240, 300, false, false, true);
-        }
+        // public static void ShowMenu(Action<Type> p_callback, Vector2 p_position)
+        // {
+        //     UniGUIGenericMenu menu = new UniGUIGenericMenu();
+        //
+        //     foreach (Type type in SupportedBasicTypes)
+        //     {
+        //         menu.AddItem(new GUIContent("Basic/" + Variable.ConvertToTypeName(type)), false, () => p_callback(type));
+        //     }
+        //     
+        //     foreach (Type type in SupportedUnityTypes)
+        //     {
+        //         menu.AddItem(new GUIContent("Unity/" + Variable.ConvertToTypeName(type)), false, () => p_callback(type));
+        //     }
+        //     
+        //     UniGUIGenericMenuPopup.Show(menu, "", p_position, 240, 300, false, false, true);
+        // }
         
-        public static void Show(Variables p_variables, Vector2 p_position)
+        public static void ShowVariablesMenu(Variables p_variables, Vector2 p_position)
         {
             UniGUIGenericMenu menu = new UniGUIGenericMenu();
-
+        
             foreach (Type type in SupportedBasicTypes)
             {
                 menu.AddItem(new GUIContent("Basic/" + Variable.ConvertToTypeName(type)), false, () => p_variables.AddNewVariable(type));
@@ -79,7 +104,7 @@ namespace Nodemon
             {
                 menu.AddItem(new GUIContent("Unity/" + Variable.ConvertToTypeName(type)), false, () => p_variables.AddNewVariable(type));
             }
-
+        
             UniGUIGenericMenuPopup.Show(menu, "", p_position, 240, 300, false, false, true);
         }
     }
