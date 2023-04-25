@@ -306,7 +306,7 @@ namespace Nodemon
             GUILayout.EndHorizontal();
             
             GUILayout.Space(4);
-
+            
             return UniGUI.EndChangeCheck();
         }
         
@@ -360,25 +360,40 @@ namespace Nodemon
         {
             Type value = (Type)p_fieldInfo.GetValue(p_fieldObject);
 
+            UniGUI.BeginChangeCheck();
+            
             GUILayout.BeginHorizontal();
             
             GUILayout.Label(p_label, GUILayout.Width(labelWidth));
 
             var mousePosition = Event.current.mousePosition;
-            if (GUILayout.Button(value == null ? "NONE" : value.Name))
-            {
-                VariableTypesMenu.Show((type) =>
-                {
-                    if (type != value)
-                    {
-                        p_fieldInfo.SetValue(p_fieldObject, type);
-                    }    
-                }, mousePosition);
-                
-                return true;
-            }
+
+            var types = SupportedTypes.GetSupportedTypes();
+            var names = SupportedTypes.GetSupportedTypeNames();
+            var index = Array.IndexOf(types, value);
+            
+            var newIndex = UniGUILayout.Popup(GUIContent.none, index, names);
+            
+            // if (GUILayout.Button(value == null ? "NONE" : value.Name))
+            // {
+            //     SupportedTypes.Show((type) =>
+            //     {
+            //         if (type != value)
+            //         {
+            //             p_fieldInfo.SetValue(p_fieldObject, type);
+            //         }    
+            //     }, mousePosition);
+            //     
+            //     return true;
+            // }
 
             GUILayout.EndHorizontal();
+            
+            if (UniGUI.EndChangeCheck())
+            {
+                p_fieldInfo.SetValue(p_fieldObject, types[newIndex]);
+                return true;
+            }
 
             return false;
         }
@@ -392,16 +407,16 @@ namespace Nodemon
         {
             UniGUI.BeginChangeCheck();
             
-             GUILayout.BeginHorizontal();
-             GUILayout.Label(p_label, GUILayout.Width(labelWidth));
-             var newValue = UniGUILayout.EnumPopup((Enum) p_fieldInfo.GetValue(p_fieldObject));
-             GUILayout.EndHorizontal();
-            
-             if (UniGUI.EndChangeCheck())
-             {
-                 p_fieldInfo.SetValue(p_fieldObject, newValue);
-                 return true;
-             }
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(p_label, GUILayout.Width(labelWidth));
+            var newValue = UniGUILayout.EnumPopup((Enum) p_fieldInfo.GetValue(p_fieldObject));
+            GUILayout.EndHorizontal();
+
+            if (UniGUI.EndChangeCheck())
+            {
+                p_fieldInfo.SetValue(p_fieldObject, newValue);
+                return true;
+            }
 
             return false;
         }

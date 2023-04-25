@@ -80,7 +80,7 @@ namespace Nodemon
             GUILayout.EndArea();
 
             GUI.color = ColorTheme.BUTTON_COLOR;
-            if (GUI.Button(new Rect(rect.x + 4, rect.y + rect.height - 28, rect.width - 8, 20), "Add Variable"))
+            if (GUI.Button(new Rect(rect.x + 4, rect.y + rect.height - 28, rect.width - 8, 24), "Add Variable"))
             {
                 Owner.TypesMenu.Show((type) => OnAddVariable(p_variables, type));
             }
