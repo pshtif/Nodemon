@@ -63,8 +63,12 @@ namespace Nodemon
                         node = type.ToString().Substring(type.ToString().IndexOf(".") + 1);
                         node = node.Substring(0, node.Length-4);
                     }
-                    
-                    menu.AddItem(new GUIContent(categoryString+"/"+node), false, () => CreateNode(p_graph, type));
+
+                    var tooltipAttribute = type.GetCustomAttribute<TooltipAttribute>();
+                    menu.AddItem(
+                        new GUIContent(categoryString + "/" + node,
+                            tooltipAttribute == null ? "" : tooltipAttribute.tooltip), false,
+                        () => CreateNode(p_graph, type));
                 }
             }
             
