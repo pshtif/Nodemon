@@ -40,7 +40,7 @@ namespace Nodemon
 #if UNITY_EDITOR
                 SupportedTypes.ShowVariablesMenu(p_variables, Event.current.mousePosition);
 #else
-                VariableTypesMenu.Show(p_variables, GUIUtility.GUIToScreenPoint(Event.current.mousePosition));
+                SupportedTypes.ShowVariablesMenu(p_variables, GUIUtility.GUIToScreenPoint(Event.current.mousePosition));
 #endif
             }
             GUI.color = Color.white;
