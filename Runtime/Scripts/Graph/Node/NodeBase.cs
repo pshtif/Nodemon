@@ -482,8 +482,7 @@ namespace Nodemon
             GUI.color = Color.gray;
             if (!String.IsNullOrEmpty(_model.id))
             {
-                GUI.Label(
-                    new Rect(new Vector2(p_rect.x, p_rect.y + p_rect.height - 4), new Vector2(rect.width - 5, 20)), _model.id);
+                GUI.Label(new Rect(new Vector2(p_rect.x + p_rect.width + 24, p_rect.y + p_rect.height/2 - 10), new Vector2(rect.width - 5, 20)), _model.id);
             }
             GUI.color = Color.white;
         }
