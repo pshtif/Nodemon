@@ -189,7 +189,7 @@ namespace Nodemon
             float straightFactor = Vector2.Angle(p_startTan - p_startPos, p_endPos - p_startPos) *
                                    Vector2.Angle(p_endTan - p_endPos, p_startPos - p_endPos) *
                                    (p_endTan.magnitude + p_startTan.magnitude);
-			straightFactor = 2 + Mathf.Pow(straightFactor / 400, 0.125f); // 1/8
+            straightFactor = 2 + Mathf.Pow(straightFactor / 400, 0.125f);
             
 			float distanceFactor = 1 + (p_startPos-p_endPos).magnitude;
             distanceFactor = Mathf.Pow(distanceFactor, 0.1f);
@@ -344,6 +344,22 @@ namespace Nodemon
 				return false;
 
 			return true;
+		}
+		
+		public static float DistanceFromBezier(Vector2 p_point, Vector2 p_start, Vector2 p_end, Vector2 p_startTan, Vector2 p_endTan)
+		{
+			var count = CalculateBezierSegmentCount(p_start, p_end, p_startTan, p_endTan);
+
+			float minDistance = Single.PositiveInfinity;
+			for (int i = 0; i < count; i++)
+			{
+				var point = GetBezierPoint((float)i/count, p_start, p_end, p_startTan, p_endTan);
+				var distance = Vector2.Distance(p_point, point);
+				minDistance = Mathf.Min(minDistance, distance);
+			}
+			Debug.Log(minDistance);
+			
+			return minDistance;
 		}
     }
 }

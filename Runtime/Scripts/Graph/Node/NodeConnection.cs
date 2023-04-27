@@ -110,21 +110,26 @@ namespace Nodemon
         public bool Hits(Vector2 p_position, float p_distance)
         {
             Rect outputRect = outputNode.GetConnectorRect(ConnectorType.OUTPUT, outputIndex);
-            Vector3 startPos = new Vector3(outputRect.x + outputRect.width / 2, outputRect.y + outputRect.height / 2);
+            Vector2 startPos = new Vector2(outputRect.x + outputRect.width / 2, outputRect.y + outputRect.height / 2);
 
             Rect inputRect = inputNode.GetConnectorRect(ConnectorType.INPUT, inputIndex);
-            Vector3 endPos = new Vector3(inputRect.x + inputRect.width / 2, inputRect.y + inputRect.height / 2);
+            Vector2 endPos = new Vector2(inputRect.x + inputRect.width / 2, inputRect.y + inputRect.height / 2);
             
-            Vector3 startTan = startPos + Vector3.up * 50;
-            Vector3 endTan = endPos + Vector3.down * 50;
+            Vector2 startTan = startPos + Vector2.up * 50;
+            Vector2 endTan = endPos + Vector2.down * 50;
 
-            #if UNITY_EDITOR
-            if (UnityEditor.HandleUtility.DistancePointBezier(new Vector3(p_position.x, p_position.y, 0), startPos, endPos,
-                startTan, endTan) < p_distance)
+            if (LineRenderer.DistanceFromBezier(new Vector2(p_position.x, p_position.y), startPos, endPos, startTan, endTan) < p_distance)
             {
                 return true; 
             }
-            #endif
+            //     startTan, endTan))
+            // #if UNITY_EDITOR
+            // if (UnityEditor.HandleUtility.DistancePointBezier(new Vector3(p_position.x, p_position.y, 0), startPos, endPos,
+            //     startTan, endTan) < p_distance)
+            // {
+            //     return true; 
+            // }
+            // #endif
 
             return false;
         }
