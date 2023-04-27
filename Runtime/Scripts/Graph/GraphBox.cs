@@ -51,7 +51,7 @@ namespace Nodemon
             GUI.color = color;
             
             GUI.Box(offsetRect, "", p_owner.GetSkin().GetStyle("GraphBox"));
-
+            
             Rect titleRect = new Rect(offsetRect.x + 12, offsetRect.y, offsetRect.width, 40);
             if (Event.current.type == EventType.MouseDown && titleRect.Contains(Event.current.mousePosition))
             {
@@ -67,11 +67,10 @@ namespace Nodemon
             GUI.DrawTexture(new Rect(offsetRect.x + offsetRect.width - 30, offsetRect.y + offsetRect.height - 30, 26, 26), TextureUtils.GetTexture("Icons/Resize_Icon"));
 
             GUI.color = Color.white;
-            GUIStyle style = new GUIStyle();
+            GUIStyle style = new GUIStyle(UniGUI.Skin.label);
             style.fontStyle = FontStyle.Bold;
-            style.fontSize = 24;
-            style.normal.textColor = Color.white;
-            style.alignment = TextAnchor.LowerLeft;
+            style.fontSize = 22;
+            style.alignment = TextAnchor.MiddleLeft;
             if (editingBoxComment == this)
             {
                 comment = GUI.TextField(titleRect, comment, style);

@@ -452,7 +452,7 @@ namespace Nodemon
             return p_fieldInfo.FieldType.IsGenericType &&
                    p_fieldInfo.FieldType.GetGenericTypeDefinition() == typeof(ExposedReference<>);
         }
-
+        
         static bool ExposedReferenceProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject, IReferencable p_reference, IExposedPropertyTable p_propertyTable)
         {
             #if UNITY_EDITOR
@@ -563,9 +563,9 @@ namespace Nodemon
                     UniGUI.BeginChangeCheck();
                     
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(p_label, GUILayout.Width(labelWidth));
+                    UniGUILayout.Label(p_label, GUILayout.Width(labelWidth));
                     HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
-                    var stringValue = GUILayout.TextField((String) p_fieldInfo.GetValue(p_fieldObject));
+                    var stringValue = UniGUILayout.TextField((String) p_fieldInfo.GetValue(p_fieldObject));
                     GUILayout.EndHorizontal();
 
                     if (UniGUI.EndChangeCheck())

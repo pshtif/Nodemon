@@ -105,6 +105,7 @@ namespace Nodemon
                 if (!isMinimized)
                 {
                     invalidate = invalidate || DrawCustomInspector(p_owner);
+                    GUILayout.Space(2);
                 }
             }
 
@@ -124,6 +125,7 @@ namespace Nodemon
                 string currentGroup = ga != null ? ga.Group : "Properties";
                 if (currentGroup != lastGroup)
                 {
+                    GUILayout.Space(2);
                     int groupMask = (int)Math.Pow(2, groupIndex);
                     groupIndex++;
                     if (initializeMinimization && ga != null && ga.Minimized && (groupsMinized & groupMask) == 0)

@@ -26,7 +26,6 @@ namespace Nodemon
             menu.AddItem(new GUIContent("Show Experimental"), p_config.showExperimental, () => p_config.showExperimental = !p_config.showExperimental);
             menu.AddItem(new GUIContent("Show Variables"), p_graph.showVariables, () => p_graph.showVariables = !p_graph.showVariables);
             menu.AddItem(new GUIContent("Show Node Ids"), p_config.showNodeIds, () => p_config.showNodeIds = !p_config.showNodeIds);
-            menu.AddItem(new GUIContent("Show Spreadsheet"),  p_config.showSpreadsheet, () => p_config.showSpreadsheet = !p_config.showSpreadsheet);
             // menu.AddSeparator("");
             // menu.AddItem(new GUIContent("Validate Serialization"), false, p_graph.ValidateSerialization);
             // menu.AddItem(new GUIContent("Cleanup Null"), false, p_graph.RemoveNullReferences);

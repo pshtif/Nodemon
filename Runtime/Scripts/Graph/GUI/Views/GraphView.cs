@@ -69,8 +69,6 @@ namespace Nodemon
             DrawCustomGUI(Owner, p_event, p_rect);
 
             DrawTitle(p_rect);
-
-            DrawStatusbar(p_rect);
         }
 
         protected abstract void DrawCustomGUI(IViewOwner p_owner, Event p_event, Rect p_rect);
@@ -117,12 +115,12 @@ namespace Nodemon
             {
                 style.normal.textColor = Color.yellow;
                 style.fontSize = 18;
-                GUI.Label(new Rect(p_rect.x + 16, p_rect.height - 58, 200, 40), Controller.name, style);
+                GUI.Label(new Rect(p_rect.x + 16, p_rect.height - 78, 200, 40), Controller.name, style);
             }
             
             if (GraphUtils.IsSubGraph(Owner.GetConfig().editingGraphPath))
             {
-                if (GUI.Button(new Rect(p_rect.x + 16, p_rect.height - (Controller == null ? 80 : 98), 100, 32), "GO TO PARENT"))
+                if (GUI.Button(new Rect(p_rect.x + 16, p_rect.height - (Controller == null ? 80 : 118), 100, 32), "GO TO PARENT"))
                 {
                     if (Controller != null)
                     {
@@ -147,7 +145,7 @@ namespace Nodemon
             GUI.color = Color.white;
 
             // Draw graph name
-            GUIStyle style = new GUIStyle();
+            GUIStyle style = new GUIStyle(UniGUI.Skin.label);
             style.alignment = TextAnchor.MiddleCenter;
             if (Graph != null)
             {
@@ -187,20 +185,6 @@ namespace Nodemon
             GUI.Label(new Rect(0 + p_rect.width - 75, 0, 70, 24), Owner.GetVersionLabel(), style);
 
             _graphViewMenu.Draw(Graph);
-        }
-        
-        void DrawStatusbar(Rect p_rect)
-        {
-            // Draw title background
-            GUI.color = new Color(0.1f, 0.1f, .1f, .8f);
-            GUI.DrawTexture(new Rect(0, p_rect.height - 22, p_rect.width, 22), TextureUtils.GetColorTexture(Color.white));
-            GUI.color = Color.white;
-
-            // Draw graph name
-            GUIStyle style = new GUIStyle();
-            style.alignment = TextAnchor.MiddleLeft;
-            style.normal.textColor = new Color(.8f, .8f, .8f);
-            GUI.Label(new Rect(4, p_rect.height - 22, p_rect.width - 8, 22), new GUIContent(Owner.GetTooltip().IsNullOrWhitespace() ? Owner.GetStatus() : Owner.GetTooltip()), style);
         }
 
         public override void ProcessMouse(Event p_event, Rect p_rect)

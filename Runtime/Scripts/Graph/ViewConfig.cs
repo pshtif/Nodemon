@@ -37,9 +37,7 @@ namespace Nodemon
         public bool showExperimental = false;
         
         public bool showNodeIds = false;
-        
-        public bool showSpreadsheet = false;
-        
+
         public bool deleteNull;
     }
 }

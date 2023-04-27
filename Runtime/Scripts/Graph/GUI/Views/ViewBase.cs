@@ -3,6 +3,7 @@
  */
 
 using Nodemon;
+using OdinSerializer.Utilities;
 using UnityEngine;
 
 namespace Nodemon
@@ -13,6 +14,14 @@ namespace Nodemon
         public IGraphController Controller => Owner.GetConfig().editingController;
         
         public IViewOwner Owner { get; private set; }
+
+        public string name
+        {
+            get
+            {
+                return GetType().Name.Substring(0, GetType().Name.IndexOf("View"));
+            }
+        }
         
         public void SetOwner(IViewOwner p_owner)
         {
