@@ -65,7 +65,7 @@ namespace Nodemon
         
         public IGraphController Controller => Graph.Controller;
 
-        public bool IsDirty { get; set; } = true;
+        public bool IsDirty { get; protected set; } = true;
         
         [NonSerialized] 
         protected int _executionCounter = 0;
@@ -650,9 +650,7 @@ namespace Nodemon
         {
             bool invalidate = _model.DrawInspector(p_owner);
             invalidate = invalidate || DrawCustomInspector(p_owner);
-            
-            GUILayout.Space(2);
-            
+
             if (invalidate)
             {
                 UniversalUndo.RegisterCompleteObjectUndo(Graph, "Inspector");

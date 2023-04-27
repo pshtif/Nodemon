@@ -11,7 +11,6 @@ namespace Nodemon
 {
     public abstract class GraphBase : ScriptableObject, ISerializationCallbackReceiver
     {
-        public bool previewControlsViewMinimized = true;
         public bool variablesViewMinimized = false;
         public bool showVariables = false;
         
@@ -40,6 +39,17 @@ namespace Nodemon
         public void SetParentGraph(GraphBase p_graph)
         {
             _parentGraph = p_graph;
+        }
+        
+        public string GraphPath
+        {
+            get
+            {
+                if (_parentGraph != null)
+                    return _parentGraph.GraphPath + "/"+ name;
+
+                return name;
+            }
         }
         
         [SerializeField]
@@ -100,12 +110,12 @@ namespace Nodemon
 
             _connections.Add(connection);
 
-            p_inputNode.IsDirty = true;
+            p_inputNode.MarkDirty();
         }
         
         public void Disconnect(NodeConnection p_connection)
         {
-            p_connection.inputNode.IsDirty = true;
+            p_connection.inputNode.MarkDirty();
 
             _connections.Remove(p_connection);
         }
@@ -141,6 +151,7 @@ namespace Nodemon
 
         public void DeleteNode(NodeBase p_node)
         {
+            p_node.MarkDirty();
             _connections.RemoveAll(c => c.inputNode == p_node || c.outputNode == p_node);
             Nodes.Remove(p_node);
             p_node.Remove();

@@ -255,7 +255,7 @@ namespace Nodemon
 
         public static void AddNodeToSelection(GraphBase p_graph, int p_nodeIndex)
         {
-            p_graph.Nodes[p_nodeIndex].IsDirty = true;
+            //p_graph.Nodes[p_nodeIndex].IsDirty = true;
             selectedNodes.Add(p_nodeIndex);
         }
 
@@ -269,7 +269,7 @@ namespace Nodemon
 
             selectedNodes.Add(p_node.Index);
 
-            p_node.IsDirty = true;
+            //p_node.MarkDirty();
 
             if (p_forceView)
             {
