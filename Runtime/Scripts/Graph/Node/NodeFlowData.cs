@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UniversalGUI;
 
 namespace Nodemon
 {
@@ -28,7 +29,7 @@ namespace Nodemon
 
         public bool HasAttribute(string p_name)
         {
-            return _attributes.ContainsKey(p_name) && _attributes[p_name] != null;
+            return !p_name.IsNullOrWhitespace() && _attributes.ContainsKey(p_name) && _attributes[p_name] != null;
         }
 
         public Type GetAttributeType(string p_name)
