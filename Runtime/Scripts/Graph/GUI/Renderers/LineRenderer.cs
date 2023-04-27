@@ -357,8 +357,7 @@ namespace Nodemon
 				var distance = Vector2.Distance(p_point, point);
 				minDistance = Mathf.Min(minDistance, distance);
 			}
-			Debug.Log(minDistance);
-			
+
 			return minDistance;
 		}
     }
