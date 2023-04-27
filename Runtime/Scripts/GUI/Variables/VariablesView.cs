@@ -22,7 +22,7 @@ namespace Nodemon
         {
             int height = p_variables.Count <= 10 ? 64 + p_variables.Count * 22 : 64 + 220; 
             Rect rect = new Rect(p_position.x, p_position.y, 380, p_minimized ? 32 : height);
-            DrawBoxGUI(rect, p_global ? "Global Variables" : "Graph Variables", TextAnchor.UpperCenter, p_color);
+            DrawBoxGUI(rect, p_global ? "Global Variables" : "Variables", TextAnchor.UpperCenter, p_color);
 
             var minStyle = new GUIStyle();
             minStyle.normal.textColor = Color.white;
@@ -80,7 +80,7 @@ namespace Nodemon
             GUILayout.EndArea();
 
             GUI.color = ColorTheme.BUTTON_COLOR;
-            if (GUI.Button(new Rect(rect.x + 4, rect.y + rect.height - 28, rect.width - 8, 24), "Add Variable"))
+            if (GUI.Button(new Rect(rect.x + 4, rect.y + rect.height - 30, rect.width - 8, 24), "Add Variable"))
             {
                 Owner.TypesMenu.Show((type) => OnAddVariable(p_variables, type));
             }
@@ -95,7 +95,7 @@ namespace Nodemon
             //     VariableUtils.PasteVariables(p_variables, p_bindable);
             // }
             GUI.color = Color.white;
-            
+
             if (UniGUI.EndChangeCheck())
             {
                 Graph.MarkDirty();

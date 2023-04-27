@@ -52,7 +52,7 @@ namespace Nodemon
         {
             bool invalidate = false;
             var variable = p_variables.GetVariable(p_name);
-            GUILayout.BeginHorizontal();
+            GUILayout.BeginHorizontal(GUILayout.Height(14));
             string newName = UniGUILayout.TextField(p_name, GUILayout.Width(120));
             GUILayout.Space(2);
             if (newName != p_name)
