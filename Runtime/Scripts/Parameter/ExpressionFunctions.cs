@@ -164,21 +164,20 @@ namespace Nodemon
                 
             object[] evalParams = p_args.EvaluateParameters();
 
+            float random = 0;
             switch (evalParams.Length)
             {
                 case 0:
                     p_args.HasResult = true;
-                    p_args.Result = new Vector3(UnityEngine.Random.Range(0, 1), UnityEngine.Random.Range(0, 1), UnityEngine.Random.Range(0, 1));
+                    random = UnityEngine.Random.Range(0, 1f);
+                    p_args.Result = new Vector3(random, random, random);
                     return true;
 
                 case 2:
-                    // TODO type checking?
-
                     p_args.HasResult = true;
-                    p_args.Result = new Vector3(
-                        UnityEngine.Random.Range(Convert.ToSingle(evalParams[0]), Convert.ToSingle(evalParams[1])),
-                        UnityEngine.Random.Range(Convert.ToSingle(evalParams[0]), Convert.ToSingle(evalParams[1])),
-                        UnityEngine.Random.Range(Convert.ToSingle(evalParams[0]), Convert.ToSingle(evalParams[1])));
+                    random =
+                        UnityEngine.Random.Range(Convert.ToSingle(evalParams[0]), Convert.ToSingle(evalParams[1]));
+                    p_args.Result = new Vector3(random, random, random);
                     return true;
                 case 6:
                     p_args.HasResult = true;
