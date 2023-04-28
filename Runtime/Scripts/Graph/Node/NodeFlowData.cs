@@ -17,6 +17,8 @@ namespace Nodemon
 
         protected Dictionary<string, T> _attributes;
 
+        public long timestamp = 0;
+
         public NodeFlowData()
         {
             _attributes = new Dictionary<string, T>();
