@@ -4,6 +4,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace Nodemon
@@ -39,5 +40,7 @@ namespace Nodemon
         public bool showNodeIds = false;
 
         public bool deleteNull;
+
+        public bool showDirtyNodes = false;
     }
 }
