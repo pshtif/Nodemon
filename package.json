@@ -1,0 +1,25 @@
+{
+  "name": "com.binaryego.nodemon",
+  "displayName": "Nodemon",
+  "version": "0.1.0",
+  "unity": "2020.3",
+  "description": "Nodemon is a common framework base for node based tooling.",
+  "author": {
+	"name": "Peter @sHTiF Stefcek",
+	"email": "pshtif@gmail.com"
+  },
+  "documentationUrl": "https://github.com/pshtif/Nodemon",
+  "changelogUrl": "https://github.com/pshtif/Nodemon/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/pshtif/Nodemon/blob/main/LICENSE",
+  "keywords": [ 
+	"package",
+	"unity",
+	"node",
+    "tools"
+  ],
+  "dependencies": {
+    "com.teamsirenix.odininspectorattributes": "2022.11.9",
+    "com.binaryego.ncalc": "1.0.0",
+    "com.binaryego.universalgui": "0.1.0"
+  }
+}
