@@ -3,7 +3,7 @@
  */
 
 using System;
-using Nodemon.NCalc;
+using NCalc;
 using UnityEngine;
 
 namespace Nodemon

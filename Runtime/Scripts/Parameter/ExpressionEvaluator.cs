@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Nodemon.NCalc;
+using NCalc;
 using UnityEngine;
 
 namespace Nodemon
