@@ -167,7 +167,7 @@ namespace Nodemon
                 GUI.Label(new Rect(0, 0, p_rect.width, 24), new GUIContent("No graph loaded."), style);
             }
 
-            if (Application.isPlaying && Graph != null && Owner.GetConfig().editingController != null)
+            if (Application.isPlaying && Graph != null && (Object)Owner.GetConfig().editingController != null)
             {
                 style = new GUIStyle();
                 style.fontSize = 18;
