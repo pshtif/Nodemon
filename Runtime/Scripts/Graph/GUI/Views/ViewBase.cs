@@ -2,8 +2,6 @@
  *	Created by:  Peter @sHTiF Stefcek
  */
 
-using Nodemon;
-using OdinSerializer.Utilities;
 using UnityEngine;
 
 namespace Nodemon

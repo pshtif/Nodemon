@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Nodemon
 {
@@ -18,13 +19,16 @@ namespace Nodemon
         {
             var clone = CreateClonedInstance();
             clone.name = name;
-            
-            if (value.GetType().IsValueType)
+
+            if (value == null)
+            {
+                clone.value = null;
+            } 
+            else if (value.GetType().IsValueType)
             {
                 clone.value = value;
-            }
-
-            if (typeof(ICloneable).IsAssignableFrom(value.GetType()))
+            } 
+            else if (typeof(ICloneable).IsAssignableFrom(value.GetType()))
             {
                 clone.value = ((ICloneable)value).Clone();
             }

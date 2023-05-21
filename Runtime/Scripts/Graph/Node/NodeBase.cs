@@ -387,7 +387,9 @@ namespace Nodemon
             }
         }
         
-        internal virtual void Unselect() { }
+        public virtual void OnSelect() { }
+        
+        public virtual void OnUnselect() { }
 
         public int Index => Graph.Nodes.IndexOf(this);
 
@@ -680,8 +682,6 @@ namespace Nodemon
 
             return false;
         }
-
-        protected virtual void DrawCustomSceneGUI(IViewOwner p_owner) { }
 
         public List<string> GetModelExposedGUIDs()
         {

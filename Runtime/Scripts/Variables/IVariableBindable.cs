@@ -6,8 +6,10 @@ using UnityEngine;
 
 namespace Nodemon
 {
-    public interface IVariableBindable 
+    public interface IVariableBindable
     {
+        void MarkDirty();
+        
         GameObject gameObject { get; }
     }
 }

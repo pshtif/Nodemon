@@ -117,19 +117,11 @@ namespace Nodemon
             
             Vector2 startTan = startPos + Vector2.up * 50;
             Vector2 endTan = endPos + Vector2.down * 50;
-
+            
             if (LineRenderer.DistanceFromBezier(new Vector2(p_position.x, p_position.y), startPos, endPos, startTan, endTan) < p_distance)
             {
                 return true; 
             }
-            //     startTan, endTan))
-            // #if UNITY_EDITOR
-            // if (UnityEditor.HandleUtility.DistancePointBezier(new Vector3(p_position.x, p_position.y, 0), startPos, endPos,
-            //     startTan, endTan) < p_distance)
-            // {
-            //     return true; 
-            // }
-            // #endif
 
             return false;
         }

@@ -12,14 +12,14 @@ namespace Nodemon
     {
         private Vector2 _lastMousePosition;
         
-        public void Show(GraphBase p_graph, NodeBase p_node)
+        public void Show(GraphBase p_graph, NodeBase p_node) 
         {
             _lastMousePosition = Event.current.mousePosition;
             
             UniGUIGenericMenuPopup.Show(Get(p_graph, p_node), "", _lastMousePosition, 160, 100, false, false);
         }
         
-        public UniGUIGenericMenu Get(GraphBase p_graph, NodeBase p_node)
+        public virtual UniGUIGenericMenu Get(GraphBase p_graph, NodeBase p_node) 
         {
             UniGUIGenericMenu menu = new UniGUIGenericMenu();
             

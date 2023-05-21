@@ -184,12 +184,12 @@ namespace Nodemon
         }
 
 
-		private static int CalculateBezierSegmentCount(Vector2 p_startPos, Vector2 p_endPos, Vector2 p_startTan, Vector2 p_endTan)
+		private static int CalculateBezierSegmentCount(Vector2 p_startPos, Vector2 p_endPos, Vector2 p_startTan, Vector2 p_endTan, float p_smoothFactor = .125f)
         {
             float straightFactor = Vector2.Angle(p_startTan - p_startPos, p_endPos - p_startPos) *
                                    Vector2.Angle(p_endTan - p_endPos, p_startPos - p_endPos) *
                                    (p_endTan.magnitude + p_startTan.magnitude);
-            straightFactor = 2 + Mathf.Pow(straightFactor / 400, 0.125f);
+            straightFactor = 2 + Mathf.Pow(straightFactor / 400, p_smoothFactor);
             
 			float distanceFactor = 1 + (p_startPos-p_endPos).magnitude;
             distanceFactor = Mathf.Pow(distanceFactor, 0.1f);
@@ -348,7 +348,7 @@ namespace Nodemon
 		
 		public static float DistanceFromBezier(Vector2 p_point, Vector2 p_start, Vector2 p_end, Vector2 p_startTan, Vector2 p_endTan)
 		{
-			var count = CalculateBezierSegmentCount(p_start, p_end, p_startTan, p_endTan);
+			var count = CalculateBezierSegmentCount(p_start, p_end, p_startTan, p_endTan, 1);
 
 			float minDistance = Single.PositiveInfinity;
 			for (int i = 0; i < count; i++)

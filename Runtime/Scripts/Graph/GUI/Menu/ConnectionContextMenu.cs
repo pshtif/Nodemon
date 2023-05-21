@@ -48,10 +48,7 @@ namespace Nodemon
         {
             var connection = ((NodeConnection) p_connection);
             connection.active = false;
-            // if (p_graph.ContributesToOutput(connection))
-            // {
-            //     p_graph.SetOutputDirty(true);
-            // }
+            p_connection.inputNode.MarkDirty();
             p_graph.MarkDirty();
         }
         
@@ -59,10 +56,7 @@ namespace Nodemon
         {
             var connection = ((NodeConnection) p_connection);
             connection.active = true;
-            // if (p_graph.ContributesToOutput(connection))
-            // {
-            //     p_graph.SetOutputDirty(true);
-            // }
+            p_connection.inputNode.MarkDirty();
             p_graph.MarkDirty();
         }
     }

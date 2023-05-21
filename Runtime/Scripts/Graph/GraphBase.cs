@@ -112,7 +112,7 @@ namespace Nodemon
 
             p_inputNode.MarkDirty();
         }
-        
+
         public void Disconnect(NodeConnection p_connection)
         {
             p_connection.inputNode.MarkDirty();

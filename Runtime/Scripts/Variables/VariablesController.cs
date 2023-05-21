@@ -10,6 +10,7 @@ namespace Nodemon
 {
     public class VariablesController : MonoBehaviour, ISerializationCallbackReceiver, ISupportsPrefabSerialization, IVariableBindable
     {
+
         [SerializeField] 
         protected Variables _variables;
 
@@ -31,6 +32,13 @@ namespace Nodemon
             //MachinaCore.Instance.SetGlobalVariables(this);
         }
 
+        public void MarkDirty()
+        {
+            #if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(this);
+            #endif
+        }
+        
         private void OnDestroy()
         {
             //MachinaCore.Instance.SetGlobalVariables(null);

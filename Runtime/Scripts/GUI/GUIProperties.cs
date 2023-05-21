@@ -299,7 +299,8 @@ namespace Nodemon
             
             if (GUILayout.Button(TextureUtils.GetTexture("Icons/parameter_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
             {
-                parameter.isExpression = !parameter.isExpression;
+                var menu = ParameterMenu.Get(parameter, p_fieldInfo.Name, p_fieldObject);
+                UniGUIGenericMenuPopup.Show(menu, "", Event.current.mousePosition, 240, 300, false, false);
             }
             GUI.color = Color.white;
             GUILayout.Space(1);

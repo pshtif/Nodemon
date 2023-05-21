@@ -31,6 +31,8 @@ namespace Nodemon
         public string errorMessage;
         
         public abstract bool IsDefault();
+
+        public abstract void SetValueToDefault();
         
         public abstract FieldInfo GetValueFieldInfo();
         
@@ -221,6 +223,11 @@ namespace Nodemon
         public void SetValue(T p_value)
         {
             _value = p_value;
+        }
+        
+        public override void SetValueToDefault()
+        {
+            _value = default(T);
         }
         
         public override string ToString()

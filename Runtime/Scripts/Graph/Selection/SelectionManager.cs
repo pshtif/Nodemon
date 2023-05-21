@@ -86,7 +86,7 @@ namespace Nodemon
             
             if (p_graph != null)
             {
-                selectedNodes.ForEach(n => p_graph.Nodes[n].Unselect());
+                selectedNodes.ForEach(n => p_graph.Nodes[n].OnUnselect());
             }
             
             selectedNodes.Clear();
@@ -142,34 +142,6 @@ namespace Nodemon
             p_graph.MarkDirty();
         }
 
-        // public static void CreateSubGraphFromSelectedNodes(GraphBase p_graph)
-        // {
-        //     if (p_graph == null || selectedNodes.Count == 0)
-        //         return;
-        //     
-        //     UniversalUndo.RegisterCompleteObjectUndo(p_graph, "Create SubGraph");
-        //
-        //     List<NodeBase> nodes = selectedNodes.Select(i => p_graph.Nodes[i]).ToList();
-        //     SubGraphNode subGraphNode = NodeUtils.PackNodesToSubGraph(p_graph, nodes);
-        //     selectedNodes.Clear();
-        //     selectedNodes.Add(subGraphNode.Index);
-        //     
-        //     p_graph.SetDirty();
-        // }
-        //
-        // public static void UnpackSelectedSubGraphNode(GraphBase p_graph, SubGraphNode p_subGraphNode)
-        // {
-        //     if (p_graph == null || p_subGraphNode == null)
-        //         return;
-        //     
-        //     UniversalUndo.RegisterCompleteObjectUndo(p_graph, "Unpack SubGraph");
-        //     selectedNodes.Clear();
-        //     
-        //     NodeUtils.UnpackNodesFromSubGraph(p_graph, p_subGraphNode);
-        //     
-        //     p_graph.SetDirty();
-        // }
-        
         public static void DuplicateSelectedNodes(GraphBase p_graph)
         {
             if (p_graph == null || selectedNodes.Count == 0)
@@ -267,6 +239,7 @@ namespace Nodemon
             if (p_node == null || p_graph == null)
                 return;
 
+            p_node.OnSelect();
             selectedNodes.Add(p_node.Index);
 
             //p_node.MarkDirty();

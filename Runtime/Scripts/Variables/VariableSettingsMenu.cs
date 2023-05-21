@@ -52,7 +52,6 @@ namespace Nodemon
 
                 if (variable.IsLookup)
                 {
-                    menu.AddItem(new GUIContent("Unset as Lookup"), false, () => OnLookupVariable(p_variables, p_name));
                 }
                 else
                 {
@@ -155,7 +154,8 @@ namespace Nodemon
         static void OnDeleteVariable(Variables p_variables, string p_name, IVariableBindable p_bindable)
         {
             p_variables.RemoveVariable(p_name);
-            
+
+            p_bindable.MarkDirty();
             // TODO dirty the wrapper
         }
         
