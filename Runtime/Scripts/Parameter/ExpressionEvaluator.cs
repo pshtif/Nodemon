@@ -3,8 +3,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
 namespace Nodemon
@@ -32,32 +30,18 @@ namespace Nodemon
         public static bool hasErrorInEvaluation { get; protected set; } = false;
         public static string errorMessage;
 
-        private static Dictionary<Type, MethodInfo> _typedMethodsCache = new Dictionary<Type, MethodInfo>();
-
         public static void ClearCache()
         {
             // No managed cache anymore — the backend owns any compiled-program caching.
         }
 
+        /// <summary>
+        /// Untyped entry point — runtime-typed return value. Used by the non-generic
+        /// <see cref="Parameter"/> base class which only has the parameter type as
+        /// reflection info. Goes straight to the backend with no <c>MakeGenericMethod</c>
+        /// reflection (and so is IL2CPP / iOS-safe for any T).
+        /// </summary>
         public static object EvaluateTypedExpression<K>(string p_expression, Type p_returnType, IParameterResolver p_resolver, bool p_referenced, IAttributeDataCollection<K> p_collection = null, int p_index = 0) where K : DataAttribute
-        {
-            MethodInfo typed;
-            if (_typedMethodsCache.ContainsKey(p_returnType))
-            {
-                typed = _typedMethodsCache[p_returnType];
-            }
-            else
-            {
-                MethodInfo method = typeof(ExpressionEvaluator).GetMethod("EvaluateExpression",
-                    BindingFlags.Public | BindingFlags.Static);
-                typed = method.MakeGenericMethod(p_returnType, typeof(K));
-                _typedMethodsCache[p_returnType] = typed;
-            }
-
-            return typed.Invoke(null, new object[] { p_expression, p_resolver, p_referenced, p_collection, p_index });
-        }
-
-        public static T EvaluateExpression<T,K>(string p_expression, IParameterResolver p_resolver, bool p_referenced, IAttributeDataCollection<K> p_collection = null, int p_index = 0) where K : DataAttribute
         {
             hasErrorInEvaluation = false;
             errorMessage = null;
@@ -66,7 +50,7 @@ namespace Nodemon
             {
                 hasErrorInEvaluation = true;
                 errorMessage = "No expression backend installed.";
-                return default(T);
+                return null;
             }
 
             // Closure that the backend calls back into for parameter resolution. Closes over
@@ -91,15 +75,15 @@ namespace Nodemon
                 return r;
             };
 
-            object obj;
             try
             {
-                obj = Backend(p_expression, typeof(T), resolveCallback, out bool backendErr, out string backendMsg);
+                object raw = Backend(p_expression, p_returnType, resolveCallback, out bool backendErr, out string backendMsg);
                 if (backendErr && !hasErrorInEvaluation)
                 {
                     hasErrorInEvaluation = true;
                     errorMessage = backendMsg;
                 }
+                return ConvertResult(raw, p_returnType);
             }
             catch (Exception e)
             {
@@ -108,37 +92,45 @@ namespace Nodemon
                     errorMessage = e.Message;
                     hasErrorInEvaluation = true;
                 }
-                return default(T);
+                return null;
             }
+        }
 
-            if (obj != null)
-            {
-                Type returnType = obj.GetType();
-                if (typeof(T).IsAssignableFrom(returnType))
-                {
-                    return (T) obj;
-                }
+        /// <summary>
+        /// Typed convenience wrapper over <see cref="EvaluateTypedExpression{K}"/>. Returns T
+        /// directly so callers don't have to unbox. The actual work — and the only place the
+        /// backend is invoked — is the untyped path.
+        /// </summary>
+        public static T EvaluateExpression<T,K>(string p_expression, IParameterResolver p_resolver, bool p_referenced, IAttributeDataCollection<K> p_collection = null, int p_index = 0) where K : DataAttribute
+        {
+            object r = EvaluateTypedExpression(p_expression, typeof(T), p_resolver, p_referenced, p_collection, p_index);
+            return r is T t ? t : default(T);
+        }
 
-                // Common numeric conversions — backend may hand us double/float/int.
-                if (typeof(T) == typeof(float) && (returnType == typeof(double) || returnType == typeof(int)))
-                {
-                    return (T) Convert.ChangeType(obj, typeof(T));
-                }
+        /// <summary>
+        /// Coerces the backend's raw output to the requested return type. Handles common
+        /// numeric conversions (double → float, int → float, etc.) and falls back to
+        /// <c>Convert.ChangeType</c> for implicit casts. Returns null on no match.
+        /// </summary>
+        static object ConvertResult(object obj, Type returnType)
+        {
+            if (obj == null) return null;
 
-                if (typeof(T).IsImplicitlyAssignableFrom(returnType))
-                {
-                    return (T) Convert.ChangeType(obj, typeof(T));
-                }
+            Type srcType = obj.GetType();
+            if (returnType.IsAssignableFrom(srcType)) return obj;
 
-                if (typeof(T) == typeof(string))
-                {
-                    return (T) (object) obj.ToString();
-                }
+            // Common numeric conversions — backend may hand us double/float/int.
+            if (returnType == typeof(float) && (srcType == typeof(double) || srcType == typeof(int)))
+                return Convert.ChangeType(obj, returnType);
 
-                Debug.LogWarning("Invalid expression casting " + obj.GetType() + " and " + typeof(T));
-            }
+            if (returnType.IsImplicitlyAssignableFrom(srcType))
+                return Convert.ChangeType(obj, returnType);
 
-            return default(T);
+            if (returnType == typeof(string))
+                return obj.ToString();
+
+            Debug.LogWarning("Invalid expression casting " + srcType + " and " + returnType);
+            return null;
         }
     }
 }
