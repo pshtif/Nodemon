@@ -332,7 +332,7 @@ namespace Nodemon
             foreach (DependencyAttribute attribute in attributes)
             {
                 FieldInfo dependencyField = p_fieldObject.GetType().GetField(attribute.DependencyName);
-                if (dependencyField != null && attribute.Value.ToString() != dependencyField.GetValue(p_fieldObject).ToString())
+                if (dependencyField != null && dependencyField.GetValue(p_fieldObject) != null && attribute.Value.ToString() != dependencyField.GetValue(p_fieldObject).ToString())
                     return false;
             }
 
@@ -497,7 +497,7 @@ namespace Nodemon
                 {
                     if (newValue != null)
                     {
-                        PropertyName newExposedName = new PropertyName(UnityEditor.GUID.Generate().ToString());
+                        PropertyName newExposedName = new PropertyName(UnityEngine.GUID.Generate().ToString());
                         exposedReference.GetType().GetField("exposedName")
                             .SetValue(exposedReference, newExposedName);
                         p_propertyTable.SetReferenceValue(newExposedName, newValue);

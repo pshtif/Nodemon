@@ -155,7 +155,10 @@ namespace Nodemon
         {
             p_variables.RemoveVariable(p_name);
 
-            p_bindable.MarkDirty();
+            if (p_bindable != null)
+            {
+                p_bindable.MarkDirty();
+            }
             // TODO dirty the wrapper
         }
         
