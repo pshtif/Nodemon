@@ -27,6 +27,7 @@ namespace Nodemon
             typeof(Vector2),
             typeof(Quaternion),
             typeof(Color),
+            typeof(MeshRenderer),
             // typeof(Sprite),
             // typeof(RectTransform),
             // typeof(Transform),
@@ -72,6 +73,7 @@ namespace Nodemon
             aot.AddVariable<Vector4>("Vector4", Vector4.zero);
             aot.AddVariable<Quaternion>("Quaternion", Quaternion.identity);
             aot.AddVariable<Color>("Color", Color.white);
+            aot.AddVariable<MeshRenderer>("MeshRenderer", null);
         }
         
         // public static void ShowMenu(Action<Type> p_callback, Vector2 p_position)

@@ -19,5 +19,10 @@ namespace Machina
         
         public static Color NODE_OUTPUT_ACTIVE_COLOR = new Color(0, .6f, 1f);
         public static Color NODE_OUTPUT_INACTIVE_COLOR = new Color(0.8f, .8f, .8f);
+        
+        public static Color INSPECTOR_BUTTON_COLOR = new Color(1, 0.6f, 0f);
+        public static Color INSPECTOR_SECTION_TITLE_COLOR = new Color(1, 0.5f, 0f);
+        public static Color INSPECTOR_SECTION_SUBTITLE_COLOR = Color.white;
+
     }
 }
