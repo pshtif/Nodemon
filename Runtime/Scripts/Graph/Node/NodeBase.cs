@@ -153,7 +153,8 @@ namespace Nodemon
 
         protected void ThrowException(string p_error)
         {
-            Debug.LogWarning(p_error + " : " + _model.id);
+            SetError(p_error);
+            //Debug.LogWarning(p_error + " : " + _model.id);
             hasErrorsInExecution = true;
         }
 
@@ -250,8 +251,12 @@ namespace Nodemon
         
         protected void SetError(string p_warning = null)
         {
-            errorInExecutionMessage = p_warning;
-            hasErrorsInExecution = true;
+            // Do not override prior errors to handle errors in order
+            if (!hasErrorsInExecution)
+            {
+                errorInExecutionMessage = p_warning;
+                hasErrorsInExecution = true;
+            }
         }
 
         protected bool CheckException(IAttributeDataCollection p_flowData, string p_variableName)
