@@ -9,7 +9,7 @@ namespace Nodemon
     public abstract class ViewBase
     {
         public GraphBase Graph => Owner.GetConfig().editingGraph;
-        public IGraphController Controller => Owner.GetConfig().editingController;
+        public IGraphController Controller => Graph.Controller;
         
         public IViewOwner Owner { get; private set; }
 

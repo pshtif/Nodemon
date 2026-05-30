@@ -167,14 +167,14 @@ namespace Nodemon
                 GUI.Label(new Rect(0, 0, p_rect.width, 24), new GUIContent("No graph loaded."), style);
             }
 
-            if (Application.isPlaying && Graph != null && (Object)Owner.GetConfig().editingController != null)
+            if (Application.isPlaying && Graph != null && Graph.Controller != null)
             {
                 style = new GUIStyle();
                 style.fontSize = 18;
                 style.normal.textColor = Color.yellow;
                 style.alignment = TextAnchor.MiddleCenter;
                 GUI.Label(new Rect(0, 32, p_rect.width, 24),
-                    new GUIContent("Debugging bound: " + Owner.GetConfig().editingController.name), style);
+                    new GUIContent("Debugging bound: " + Graph.Controller.name), style);
                 GUI.color = Color.white;
             }
             

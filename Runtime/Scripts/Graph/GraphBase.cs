@@ -16,9 +16,10 @@ namespace Nodemon
         
         public Variables variables = new Variables();
 
+        [NonSerialized]
         protected IGraphController _controller;
-        
-        public IGraphController Controller { get; protected set; }
+
+        public IGraphController Controller => _controller;
         
         [SerializeField]
         protected List<GraphBox> _boxes = new List<GraphBox>();
@@ -168,8 +169,7 @@ namespace Nodemon
                 _parentGraph.MarkDirty();
             }
         }
-
-#region INTERNALS
+        
         public string GenerateNodeId(NodeBase p_node, string p_id)
         {
             if (string.IsNullOrEmpty(p_id))
@@ -187,8 +187,7 @@ namespace Nodemon
 
             return p_id;
         }
-#endregion
-        
+
 #region SERIALIZATION
 
         [SerializeField, HideInInspector]
@@ -199,8 +198,14 @@ namespace Nodemon
             //Debug.Log("OnAfterDeserialize");
             using (var cachedContext = Cache<DeserializationContext>.Claim())
             {
+                cachedContext.Value.Binder = MigrationSerializationBinder.Init();
                 cachedContext.Value.Config.SerializationPolicy = SerializationPolicies.Everything;
-                UnitySerializationUtility.DeserializeUnityObject(this, ref _serializationData, cachedContext.Value);
+                
+                // New bug in 2022.3? WTF
+                if (this != null)
+                {
+                    UnitySerializationUtility.DeserializeUnityObject(this, ref _serializationData, cachedContext.Value);
+                }
             }
         }
         
@@ -212,8 +217,14 @@ namespace Nodemon
             
             using (var cachedContext = OdinSerializer.Utilities.Cache<SerializationContext>.Claim())
             {
+                cachedContext.Value.Binder = MigrationSerializationBinder.Init();
                 cachedContext.Value.Config.SerializationPolicy = SerializationPolicies.Everything;
-                UnitySerializationUtility.SerializeUnityObject(this, ref _serializationData, serializeUnityFields: true, context: cachedContext.Value);
+                
+                // New bug in 2022.3? WTF 
+                if (this != null)
+                {
+                    UnitySerializationUtility.SerializeUnityObject(this, ref _serializationData, serializeUnityFields: true, context: cachedContext.Value);
+                }
             }
 #endif
         }
@@ -368,6 +379,11 @@ namespace Nodemon
             graph.DeserializeFromBytes(bytes, DataFormat.Binary, ref references);
             graph.name = name + "(Clone)";
             return graph;
+        }
+        
+        public void SetController(IGraphController p_controller)
+        {
+            _controller = p_controller;
         }
     }
 }

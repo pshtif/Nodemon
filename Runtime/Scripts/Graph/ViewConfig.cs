@@ -14,10 +14,10 @@ namespace Nodemon
     {
         public IGraphController editingController;
 
-        public bool HasValidEditingController()
-        {
-            return !(editingController == null || (editingController is Object && (Object)editingController == null));
-        }
+        // public bool HasValidEditingController()
+        // {
+        //     return !(editingController == null || (editingController is Object && (Object)editingController == null));
+        // }
         
         [SerializeField]
         public GraphBase editingGraph;
