@@ -2,8 +2,15 @@ Shader "Hidden/Nodemon/PointShader"
 {
 SubShader
 {
+	// Overlay queue so dots draw after every other Geometry/Transparent
+	// material in the frame — debug overlay should sit on top regardless
+	// of when its draw call was issued from C#.
+	Tags { "Queue"="Overlay" "IgnoreProjector"="True" "RenderType"="Overlay" }
 	Blend SrcAlpha OneMinusSrcAlpha
-    ZTest Off
+    // Always over Off — same effect on most platforms but some treat Off
+    // as "don't change state" rather than "always pass," and the editor
+    // SceneView depth state can leak in those cases.
+    ZTest Always
 	ZWrite Off
 	Cull Off
 	Fog { Mode Off }
