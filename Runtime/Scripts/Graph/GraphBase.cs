@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using OdinSerializer;
 using OdinSerializer.Utilities;
 using UnityEngine;
@@ -122,8 +121,6 @@ namespace Nodemon
         }
 
         public abstract void ExecuteInputs(NodeBase p_node, bool p_initSeed);
-        
-        public abstract Task ExecuteInputsAsync(NodeBase p_node, bool p_initSeed);
 
         public bool HasOutputConnected(NodeBase p_node, int p_index)
         {
