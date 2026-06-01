@@ -44,6 +44,14 @@ namespace Nodemon
         // topmost containing entry.
         static readonly List<Entry> _entries = new List<Entry>();
 
+        /// <summary>Per-frame flag set by the host (e.g. MachinaEditorGUI) once
+        /// before the view-draw loop. Background views can read it to decide
+        /// whether to disable input on inline controls (without skipping the
+        /// control entirely — skipping would shift IMGUI's control-ID counter
+        /// and break the inspector's keyboardControl tracking across frames).
+        /// True when the mouse is currently inside any registered overlay rect.</summary>
+        public static bool MouseInOverlay;
+
         public static void Clear() => _entries.Clear();
 
         /// <summary>Records (or replaces) the bounds posted by <paramref name="view"/>.
