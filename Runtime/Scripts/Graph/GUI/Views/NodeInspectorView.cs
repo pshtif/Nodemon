@@ -25,28 +25,6 @@ namespace Nodemon
 
         }
 
-        public override Rect? GetOcclusionRect(Rect p_canvasRect)
-        {
-            if (Graph == null) return null;
-            if (SelectionManager.GetSelectedNode(Graph) != null)
-            {
-                // Match the actual visible panel height from the last Repaint.
-                // _previousHeight is set during DrawNodeGUI's Repaint branch and
-                // reflects the on-screen rect; this keeps clicks below the
-                // inspector falling through to graph-node selection rather than
-                // being blocked by an oversized hit rect. Fallback covers the
-                // single-frame race before the first Repaint runs.
-                float h = _previousHeight > 0 ? _previousHeight + 38 : 60;
-                return new Rect(p_canvasRect.width - 400, 30, 390, h);
-            }
-            if (GraphBox.selectedBox != null)
-            {
-                // GraphBox properties panel is fixed at 340 in DrawBoxGUI.
-                return new Rect(p_canvasRect.width - 400, 30, 390, 340);
-            }
-            return null;
-        }
-
         public override void DrawGUI(Event p_event, Rect p_rect)
         {
             if (Graph == null)
