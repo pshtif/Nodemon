@@ -30,17 +30,14 @@ namespace Nodemon
             if (Graph == null) return null;
             if (SelectionManager.GetSelectedNode(Graph) != null)
             {
-                // Use maxHeight + 38 (worst-case panel size) rather than the
-                // last-measured _previousHeight. Reason: _previousHeight is
-                // only set on Repaint, so on the very first click after
-                // selecting a node (or after content grows) the click-block
-                // would be smaller than the visible panel; clicks falling
-                // through to GraphView.ProcessLeftClick then call
-                // GUI.FocusControl("") which clears any text field's keyboard
-                // focus and breaks typing into the inspector. Over-occluding
-                // the right strip of the editor by ~200px is a far smaller
-                // wart than losing keyboard input entirely.
-                return new Rect(p_canvasRect.width - 400, 30, 390, maxHeight + 38);
+                // Match the actual visible panel height from the last Repaint.
+                // _previousHeight is set during DrawNodeGUI's Repaint branch and
+                // reflects the on-screen rect; this keeps clicks below the
+                // inspector falling through to graph-node selection rather than
+                // being blocked by an oversized hit rect. Fallback covers the
+                // single-frame race before the first Repaint runs.
+                float h = _previousHeight > 0 ? _previousHeight + 38 : 60;
+                return new Rect(p_canvasRect.width - 400, 30, 390, h);
             }
             if (GraphBox.selectedBox != null)
             {
