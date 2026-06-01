@@ -215,7 +215,7 @@ namespace Nodemon
                 // as a trailing extra. The menu icon stays the rightmost element.
                 ParameterProperty(p_label, p_fieldInfo, p_fieldObject, p_reference, () =>
                 {
-                    if (GUILayout.Button(TextureUtils.GetTexture("Icons/retry_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.Width(18)))
+                    if (UniGUILayout.IconButton(TextureUtils.GetTexture("Icons/retry_icon"), 18, ParameterButtonStyle))
                     {
                         var random = new System.Random();
                         if (p_fieldInfo.FieldType == typeof(Parameter<int>))
@@ -247,7 +247,7 @@ namespace Nodemon
                 ValueProperty(p_label, p_fieldInfo, p_fieldObject, p_reference);
                 GUILayout.FlexibleSpace();
 
-                if (GUILayout.Button(TextureUtils.GetTexture("Icons/retry_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.Width(18)))
+                if (UniGUILayout.IconButton(TextureUtils.GetTexture("Icons/retry_icon"), 18, ParameterButtonStyle))
                 {
                     var random = new System.Random();
                     if (p_fieldInfo.FieldType == typeof(int))
@@ -329,7 +329,7 @@ namespace Nodemon
             drawTrailingExtras?.Invoke();
 
             GUI.color = parameter.isExpression ? PARAMETER_COLOR : Color.gray;
-            if (GUILayout.Button(TextureUtils.GetTexture("Icons/parameter_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.Width(18)))
+            if (UniGUILayout.IconButton(TextureUtils.GetTexture("Icons/parameter_icon"), 18, ParameterButtonStyle))
             {
                 var menu = ParameterMenu.Get(parameter, p_fieldInfo.Name, p_fieldObject);
                 UniGUIGenericMenuPopup.Show(menu, "", Event.current.mousePosition, 240, 300, false, false);
@@ -654,8 +654,9 @@ namespace Nodemon
                     }
                     else
                     {
-                        // intValue = EditorGUILayout.IntSlider((int) p_fieldInfo.GetValue(p_fieldObject), (int)range.min,
-                        //     (int)range.max);
+                        intValue = UniGUILayout.IntSlider((int) p_fieldInfo.GetValue(p_fieldObject),
+                            (int)range.min, (int)range.max,
+                            GUILayout.Width(fieldWidth > 0 ? fieldWidth : 190));
                     }
 
                     if (p_parentObject == null) GUILayout.EndHorizontal();
@@ -666,7 +667,7 @@ namespace Nodemon
                          return true;
                     }
                     return false;
-                
+
                 case "System.Byte":
                     UniGUI.BeginChangeCheck();
                     
@@ -684,8 +685,9 @@ namespace Nodemon
                     }
                     else
                     {
-                        // byteValue = (byte)EditorGUILayout.IntSlider((int) p_fieldInfo.GetValue(p_fieldObject), (int)range.min,
-                        //     (int)range.max);
+                        byteValue = (byte)UniGUILayout.IntSlider((byte) p_fieldInfo.GetValue(p_fieldObject),
+                            (int)range.min, (int)range.max,
+                            GUILayout.Width(fieldWidth > 0 ? fieldWidth : 190));
                     }
 
                     if (p_parentObject == null) GUILayout.EndHorizontal();
@@ -712,8 +714,9 @@ namespace Nodemon
                     }
                     else
                     {
-                        // singleValue = EditorGUILayout.Slider((float) p_fieldInfo.GetValue(p_fieldObject), range.min,
-                        //     range.max);
+                        singleValue = UniGUILayout.Slider((float) p_fieldInfo.GetValue(p_fieldObject),
+                            range.min, range.max,
+                            GUILayout.Width(fieldWidth > 0 ? fieldWidth : 190));
                     }
                     
                     GUILayout.EndHorizontal();
