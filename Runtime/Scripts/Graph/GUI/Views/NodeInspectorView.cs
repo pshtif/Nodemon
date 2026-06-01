@@ -93,8 +93,15 @@ namespace Nodemon
             // their own draw call so the full content still fits the scrollview
             // viewport without horizontal scroll.
             GUIProperties.fieldWidth = 190;
+            // Hard cap on row width. Subtracts vertical scrollbar (~16) and
+            // BeginScrollView's internal padding (~4) from the area width so a
+            // row's outer BeginHorizontal can lock to this size and prevent any
+            // nested layout from reporting a preferred width that triggers a
+            // horizontal scrollbar on the inspector.
+            GUIProperties.rowWidth = (int)inspectorRect.width - 20;
             selectedNode.DrawInspector(Owner);
             GUIProperties.fieldWidth = 0;
+            GUIProperties.rowWidth = 0;
 
             if (Event.current.type == EventType.Repaint)
             {
