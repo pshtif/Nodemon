@@ -30,15 +30,17 @@ namespace Nodemon
             if (Graph == null) return null;
             if (SelectionManager.GetSelectedNode(Graph) != null)
             {
-                // Match the actual visible node-properties panel height. Using
-                // maxHeight + 38 over-occluded most of the right side of the
-                // editor even when the panel was small. _previousHeight is
-                // updated from the last Repaint, so on the very first click
-                // after switching to a taller node the lower slice can race —
-                // acceptable trade-off vs blocking nodes the user is trying
-                // to reach.
-                float h = _previousHeight > 0 ? _previousHeight + 38 : 60;
-                return new Rect(p_canvasRect.width - 400, 30, 390, h);
+                // Use maxHeight + 38 (worst-case panel size) rather than the
+                // last-measured _previousHeight. Reason: _previousHeight is
+                // only set on Repaint, so on the very first click after
+                // selecting a node (or after content grows) the click-block
+                // would be smaller than the visible panel; clicks falling
+                // through to GraphView.ProcessLeftClick then call
+                // GUI.FocusControl("") which clears any text field's keyboard
+                // focus and breaks typing into the inspector. Over-occluding
+                // the right strip of the editor by ~200px is a far smaller
+                // wart than losing keyboard input entirely.
+                return new Rect(p_canvasRect.width - 400, 30, 390, maxHeight + 38);
             }
             if (GraphBox.selectedBox != null)
             {
