@@ -466,15 +466,21 @@ namespace Nodemon
         static bool UnityObjectProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject)
         {
             UniGUI.BeginChangeCheck();
-            
-            GUILayout.BeginHorizontal();
+
+            // Constrain the outer BeginHorizontal to labelWidth + fieldWidth so
+            // the ObjectField (which routes through Popup in the runtime path)
+            // doesn't auto-size its inner Button to the asset name. Same pattern
+            // as EnumProperty and Vector2/3/4Field — passing Width through to
+            // ObjectField as a layout option doesn't work because Popup drops
+            // p_options when forwarding to GUILayout.Button.
+            GUILayout.BeginHorizontal(GUILayout.Width(labelWidth + (fieldWidth > 0 ? fieldWidth : 190)));
             GUILayout.Label(p_label, GUILayout.Width(labelWidth));
-            
+
             var newValue = UniGUILayout.ObjectField((UnityEngine.Object) p_fieldInfo.GetValue(p_fieldObject),
                 p_fieldInfo.FieldType, false);
 
             GUILayout.EndHorizontal();
-            
+
             if (UniGUI.EndChangeCheck())
             {
                 p_fieldInfo.SetValue(p_fieldObject, newValue);
