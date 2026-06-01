@@ -68,18 +68,13 @@ namespace Nodemon
         {
             var selectedNode = SelectionManager.GetSelectedNode(Graph);
 
+            // Visible panel rect = the actual drawn area. Registered as the
+            // click-block rect too so the OverlayBounds mute only kicks in when
+            // the mouse is actually over the visible inspector. Stale
+            // _previousHeight on the first frame after a content change can let
+            // one click race past, but that's far less annoying than node flag
+            // buttons graying out across half the editor.
             Rect rect = new Rect(p_rect.width - 400, 30, 390, _previousHeight + 38);
-
-            // Always register the worst-case panel size for the click-block.
-            // The tight rect (_previousHeight + 38) lagged content growth and
-            // raced first-field clicks against an undersized rect — clicks fell
-            // through, the graph view's MouseDown handler called FocusControl(""),
-            // and the text field never got focus. The worst-case rect blocks
-            // node *button* clicks in the strip below the visible inspector
-            // (the muted DrawGUI pass) but node *selection* still works because
-            // ProcessMouse for the graph view runs regardless of mute — only
-            // the per-node inline buttons are silenced during DrawGUI.
-            Rect claimRect = new Rect(rect.x, rect.y, rect.width, maxHeight + 38);
 
             DrawBoxGUI(rect, "Properties", TextAnchor.UpperRight, Color.white);
 
@@ -118,7 +113,7 @@ namespace Nodemon
             }
 
             UseEvent(rect);
-            OverlayBounds.Register(this, claimRect);
+            OverlayBounds.Register(this, rect);
         }
 
         void DrawScriptButton(Rect p_rect, Type p_type)
