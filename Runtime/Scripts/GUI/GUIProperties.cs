@@ -562,7 +562,7 @@ namespace Nodemon
             {
                 case "System.String":
                     var multiline = (p_parameterInfo == null ? p_fieldInfo : p_parameterInfo)
-                        .GetAttribute<MultilineAttribute>();
+                        .GetAttribute<Nodemon.Attributes.MultilineAttribute>();
 
                     UniGUI.BeginChangeCheck();
 
