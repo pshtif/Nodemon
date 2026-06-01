@@ -27,15 +27,6 @@ namespace Nodemon
 
         public static int fieldWidth = 0;
 
-        // Hard cap on a single parameter row's width. Set by the inspector view
-        // to (inspectorRect.width - vertical scrollbar - padding) so the outer
-        // BeginHorizontal in ParameterProperty / SeedProperty can lock the
-        // row to a known width and prevent any nested layout (e.g. ValueProperty's
-        // inner BeginHorizontal for Float / Color / Boolean) from reporting a
-        // preferred width that triggers the scrollview's horizontal scrollbar.
-        // 0 means "no cap" — fall back to default ExpandWidth behavior.
-        public static int rowWidth = 0;
-
         private static GUIStyle _parameterButtonStyle;
         private static GUIStyle ParameterButtonStyle
         {
@@ -218,7 +209,7 @@ namespace Nodemon
                 // retry icon fits without overflow. Restore right after — every
                 // other row in the inspector keeps the default 190.
                 int savedFieldWidth = fieldWidth;
-                fieldWidth = savedFieldWidth - 40;
+                fieldWidth = savedFieldWidth - 20;
 
                 // Use ParameterProperty's row layout and inject the retry icon
                 // as a trailing extra. The menu icon stays the rightmost element.
@@ -252,10 +243,7 @@ namespace Nodemon
             }
             else
             {
-                if (rowWidth > 0)
-                    GUILayout.BeginHorizontal(GUILayout.Width(rowWidth));
-                else
-                    GUILayout.BeginHorizontal();
+                GUILayout.BeginHorizontal();
                 ValueProperty(p_label, p_fieldInfo, p_fieldObject, p_reference);
                 GUILayout.FlexibleSpace();
 
@@ -314,10 +302,7 @@ namespace Nodemon
 
             UniGUI.BeginChangeCheck();
 
-            if (rowWidth > 0)
-                GUILayout.BeginHorizontal(GUILayout.Width(rowWidth));
-            else
-                GUILayout.BeginHorizontal();
+            GUILayout.BeginHorizontal();
 
             if (parameter.isExpression)
             {

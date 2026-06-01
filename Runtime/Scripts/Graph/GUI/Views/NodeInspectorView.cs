@@ -92,16 +92,18 @@ namespace Nodemon
             // rows add a retry icon) temporarily shrink fieldWidth by ~20 inside
             // their own draw call so the full content still fits the scrollview
             // viewport without horizontal scroll.
-            GUIProperties.fieldWidth = 190;
-            // Hard cap on row width. Subtracts vertical scrollbar (~16) and
-            // BeginScrollView's internal padding (~4) from the area width so a
-            // row's outer BeginHorizontal can lock to this size and prevent any
-            // nested layout from reporting a preferred width that triggers a
-            // horizontal scrollbar on the inspector.
-            GUIProperties.rowWidth = (int)inspectorRect.width - 20;
+            //
+            // When the vertical scrollbar is showing it eats ~16 px of viewport
+            // width, which makes Seed rows (an extra retry icon) overflow and
+            // brings up a horizontal scrollbar too. Predict scrollbar visibility
+            // from the previous frame's measured content height: if last cook's
+            // content hit maxHeight, the scrollview is in capped/scrolling mode
+            // this frame as well. Shrink the default field width by 16 in that
+            // case so the row still fits the reduced viewport.
+            bool verticalScrollbarVisible = _previousHeight >= maxHeight - 1f;
+            GUIProperties.fieldWidth = verticalScrollbarVisible ? 174 : 190;
             selectedNode.DrawInspector(Owner);
             GUIProperties.fieldWidth = 0;
-            GUIProperties.rowWidth = 0;
 
             if (Event.current.type == EventType.Repaint)
             {
