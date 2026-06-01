@@ -301,14 +301,12 @@ namespace Nodemon
                 PropertyField(parameter.GetValueFieldInfo(), parameter, p_reference, p_fieldInfo, p_fieldObject);
             }
 
-            // Pin the parameter-mode button to the row's right edge. Without this
-            // the button sits flush against the field's right side, which moves
-            // when expression mode (fixed-width TextField) and literal mode
-            // (some types use ExpandWidth) render at different sizes. FlexibleSpace
-            // soaks up the rest of the row so the icon's x position only depends
-            // on the inspector width, not on the field type or content.
-            GUILayout.FlexibleSpace();
-
+            // No FlexibleSpace here — SeedProperty wraps ParameterProperty in its
+            // own outer horizontal and tacks a retry icon on the end. A
+            // FlexibleSpace inside would greedily soak up the outer row's width,
+            // pushing the retry icon off the panel. Instead each field type
+            // pins itself to GUILayout.Width(fieldWidth) so the icon's position
+            // is consistent across modes without any space-fighting.
             GUI.color = parameter.isExpression ? PARAMETER_COLOR : Color.gray;
             if (GUILayout.Button(TextureUtils.GetTexture("Icons/parameter_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
             {
@@ -420,8 +418,12 @@ namespace Nodemon
         static bool EnumProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject)
         {
             UniGUI.BeginChangeCheck();
-            
-            GUILayout.BeginHorizontal();
+
+            // Outer BeginHorizontal constrained to labelWidth + fieldWidth so the
+            // EnumPopup button doesn't expand to fill the inspector and shift the
+            // trailing parameter icon. Label takes labelWidth, EnumPopup gets the
+            // remaining fieldWidth.
+            GUILayout.BeginHorizontal(GUILayout.Width(labelWidth + (fieldWidth > 0 ? fieldWidth : 190)));
             GUILayout.Label(p_label, GUILayout.Width(labelWidth));
             var newValue = UniGUILayout.EnumPopup((Enum) p_fieldInfo.GetValue(p_fieldObject));
             GUILayout.EndHorizontal();
@@ -720,50 +722,59 @@ namespace Nodemon
                 
                 case "UnityEngine.Vector2":
                     UniGUI.BeginChangeCheck();
-                    
+
                     HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
-                    var vector2Value = UniGUILayout.Vector2Field(p_label, (Vector2) p_fieldInfo.GetValue(p_fieldObject));
-                    
+                    // Constrain the Vector2Field's outer BeginHorizontal to
+                    // labelWidth + fieldWidth so the row matches the size of
+                    // single-line parameter fields and the trailing icon stays
+                    // pinned at the same x position across modes.
+                    var vector2Value = UniGUILayout.Vector2Field(p_label, (Vector2) p_fieldInfo.GetValue(p_fieldObject),
+                        GUILayout.Width(labelWidth + (fieldWidth > 0 ? fieldWidth : 190)));
+
                     if (UniGUI.EndChangeCheck())
                     {
                         p_fieldInfo.SetValue(p_fieldObject, vector2Value);
                         return true;
                     }
                     return false;
-                
+
                 case "UnityEngine.Vector3":
                     UniGUI.BeginChangeCheck();
-                    
+
                     HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
-                    var vector3Value = UniGUILayout.Vector3Field(p_label, (Vector3) p_fieldInfo.GetValue(p_fieldObject), fieldWidth);
-                    
+                    var vector3Value = UniGUILayout.Vector3Field(p_label, (Vector3) p_fieldInfo.GetValue(p_fieldObject),
+                        fieldWidth > 0 ? fieldWidth : 190,
+                        GUILayout.Width(labelWidth + (fieldWidth > 0 ? fieldWidth : 190)));
+
                     if (UniGUI.EndChangeCheck())
                     {
                         p_fieldInfo.SetValue(p_fieldObject, vector3Value);
                         return true;
                     }
                     return false;
-                
+
                 case "UnityEngine.Vector4":
                     UniGUI.BeginChangeCheck();
-                    
+
                     HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
-                    var vector4Value = UniGUILayout.Vector4Field(p_label, (Vector4) p_fieldInfo.GetValue(p_fieldObject));
-                    
+                    var vector4Value = UniGUILayout.Vector4Field(p_label, (Vector4) p_fieldInfo.GetValue(p_fieldObject),
+                        GUILayout.Width(labelWidth + (fieldWidth > 0 ? fieldWidth : 190)));
+
                     if (UniGUI.EndChangeCheck())
                     {
                         p_fieldInfo.SetValue(p_fieldObject, vector4Value);
                         return true;
                     }
                     return false;
-                
+
                 case "UnityEngine.Color":
                     UniGUI.BeginChangeCheck();
-                    
+
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(p_label, GUILayout.Width(labelWidth));
                     HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
-                    var colorValue = UniGUILayout.ColorField((Color) p_fieldInfo.GetValue(p_fieldObject));
+                    var colorValue = UniGUILayout.ColorField((Color) p_fieldInfo.GetValue(p_fieldObject),
+                        GUILayout.Width(fieldWidth > 0 ? fieldWidth : 190));
                     GUILayout.EndHorizontal();
                     
                     if (UniGUI.EndChangeCheck())
