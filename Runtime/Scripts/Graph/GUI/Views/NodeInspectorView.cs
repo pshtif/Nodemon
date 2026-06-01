@@ -70,14 +70,16 @@ namespace Nodemon
 
             Rect rect = new Rect(p_rect.width - 400, 30, 390, _previousHeight + 38);
 
-            // Registered click-block uses a conservative fallback (maxHeight)
-            // when no Repaint has measured the panel yet — without this the
-            // first MouseDown after selecting a node races against an
-            // undersized rect and the click falls through to the graph view's
-            // node controls. After the first Repaint they match.
-            Rect claimRect = _previousHeight > 0
-                ? rect
-                : new Rect(rect.x, rect.y, rect.width, maxHeight + 38);
+            // Always register the worst-case panel size for the click-block.
+            // The tight rect (_previousHeight + 38) lagged content growth and
+            // raced first-field clicks against an undersized rect — clicks fell
+            // through, the graph view's MouseDown handler called FocusControl(""),
+            // and the text field never got focus. The worst-case rect blocks
+            // node *button* clicks in the strip below the visible inspector
+            // (the muted DrawGUI pass) but node *selection* still works because
+            // ProcessMouse for the graph view runs regardless of mute — only
+            // the per-node inline buttons are silenced during DrawGUI.
+            Rect claimRect = new Rect(rect.x, rect.y, rect.width, maxHeight + 38);
 
             DrawBoxGUI(rect, "Properties", TextAnchor.UpperRight, Color.white);
 
