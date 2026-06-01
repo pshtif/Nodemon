@@ -48,7 +48,7 @@ namespace Nodemon
         private void DrawBoxGUI(Rect p_rect)
         {
             Rect rect = new Rect(p_rect.width - 400, 30, 390, 340);
-            
+
             DrawBoxGUI(rect, "Properties", TextAnchor.UpperRight, Color.white);
 
             GUILayout.BeginArea(new Rect(rect.x+5, rect.y+30, rect.width-10, rect.height-35));
@@ -61,6 +61,7 @@ namespace Nodemon
             GUILayout.EndArea();
 
             UseEvent(rect);
+            OverlayBounds.Register(this, rect);
         }
 
         private void DrawNodeGUI(Rect p_rect) 
@@ -105,11 +106,8 @@ namespace Nodemon
                 GUILayout.EndArea();
             }
 
-            // Match hit-test to the actual drawn rect. A maxHeight-based hit
-            // area over-occluded the right side of the editor; the host's
-            // GetOcclusionRect-driven type-mute is the primary block path
-            // anyway, this UseEvent is just a backstop.
             UseEvent(rect);
+            OverlayBounds.Register(this, rect);
         }
         
         void DrawScriptButton(Rect p_rect, Type p_type)
