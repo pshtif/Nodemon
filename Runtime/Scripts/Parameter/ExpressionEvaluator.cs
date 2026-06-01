@@ -23,7 +23,7 @@ namespace Nodemon
         /// raw evaluated object; <see cref="EvaluateExpression{T,K}"/> converts to T at the
         /// boundary.
         /// </summary>
-        public delegate object ExpressionBackend(string expression, Type returnType, Func<string, int, object> resolve, out bool hadError, out string errorMessage);
+        public delegate object ExpressionBackend(string expression, Type returnType, Func<string, int, object> resolve, int elementIndex, out bool hadError, out string errorMessage);
 
         public static ExpressionBackend Backend;
 
@@ -77,7 +77,7 @@ namespace Nodemon
 
             try
             {
-                object raw = Backend(p_expression, p_returnType, resolveCallback, out bool backendErr, out string backendMsg);
+                object raw = Backend(p_expression, p_returnType, resolveCallback, p_index, out bool backendErr, out string backendMsg);
                 if (backendErr && !hasErrorInEvaluation)
                 {
                     hasErrorInEvaluation = true;
