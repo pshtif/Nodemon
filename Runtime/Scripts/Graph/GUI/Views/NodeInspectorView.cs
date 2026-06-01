@@ -28,11 +28,24 @@ namespace Nodemon
         public override Rect? GetOcclusionRect(Rect p_canvasRect)
         {
             if (Graph == null) return null;
-            bool shown = SelectionManager.GetSelectedNode(Graph) != null
-                         || GraphBox.selectedBox != null;
-            if (!shown) return null;
-            // Mirrors the worst-case panel rect used in DrawNodeGUI's UseEvent.
-            return new Rect(p_canvasRect.width - 400, 30, 390, maxHeight + 38);
+            if (SelectionManager.GetSelectedNode(Graph) != null)
+            {
+                // Match the actual visible node-properties panel height. Using
+                // maxHeight + 38 over-occluded most of the right side of the
+                // editor even when the panel was small. _previousHeight is
+                // updated from the last Repaint, so on the very first click
+                // after switching to a taller node the lower slice can race —
+                // acceptable trade-off vs blocking nodes the user is trying
+                // to reach.
+                float h = _previousHeight > 0 ? _previousHeight + 38 : 60;
+                return new Rect(p_canvasRect.width - 400, 30, 390, h);
+            }
+            if (GraphBox.selectedBox != null)
+            {
+                // GraphBox properties panel is fixed at 340 in DrawBoxGUI.
+                return new Rect(p_canvasRect.width - 400, 30, 390, 340);
+            }
+            return null;
         }
 
         public override void DrawGUI(Event p_event, Rect p_rect)
@@ -115,16 +128,11 @@ namespace Nodemon
                 GUILayout.EndArea();
             }
 
-            // Hit-test against the maximum possible panel height rather than the
-            // last measured _previousHeight. _previousHeight only updates on
-            // Repaint, so when inspector content grows (e.g. toggling a category
-            // dropdown that introduces a new field) there's a one-frame window
-            // where the visible panel is taller than the click-block rect and
-            // clicks in the new bottom slice fall through to the graph view,
-            // selecting whatever node was behind. The visible panel still sizes
-            // to content; only the click-block area covers the worst case.
-            var hitRect = new Rect(rect.x, rect.y, rect.width, maxHeight + 38);
-            UseEvent(hitRect);
+            // Match hit-test to the actual drawn rect. A maxHeight-based hit
+            // area over-occluded the right side of the editor; the host's
+            // GetOcclusionRect-driven type-mute is the primary block path
+            // anyway, this UseEvent is just a backstop.
+            UseEvent(rect);
         }
         
         void DrawScriptButton(Rect p_rect, Type p_type)
