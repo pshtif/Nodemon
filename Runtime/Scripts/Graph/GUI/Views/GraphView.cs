@@ -238,7 +238,12 @@ namespace Nodemon
             if (p_event.type == EventType.MouseDown)
             {
                 SelectionManager.EndConnectionDrag(Graph);
-                GUI.FocusControl("");
+                // Don't clear keyboard focus when alt is held — that's a graph
+                // pan gesture, not a click intended to leave a text field. Used
+                // to fire unconditionally, which stole focus from the
+                // inspector's text fields the moment the user started panning
+                // back over them.
+                if (!p_event.alt) GUI.FocusControl("");
             }
             
             if (p_event.type == EventType.MouseDown && !p_event.alt && Graph != null)
