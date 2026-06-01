@@ -205,6 +205,12 @@ namespace Nodemon
 
             if (IsParameterProperty(p_fieldInfo))
             {
+                // Shrink fieldWidth for the duration of this row so the extra
+                // retry icon fits without overflow. Restore right after — every
+                // other row in the inspector keeps the default 190.
+                int savedFieldWidth = fieldWidth;
+                fieldWidth = savedFieldWidth - 20;
+
                 // Use ParameterProperty's row layout and inject the retry icon
                 // as a trailing extra. The menu icon stays the rightmost element.
                 ParameterProperty(p_label, p_fieldInfo, p_fieldObject, p_reference, () =>
@@ -232,6 +238,8 @@ namespace Nodemon
                         invalidate = true;
                     }
                 });
+
+                fieldWidth = savedFieldWidth;
             }
             else
             {
