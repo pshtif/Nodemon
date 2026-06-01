@@ -90,7 +90,7 @@ namespace Nodemon
                 var lastRect = GUILayoutUtility.GetLastRect();
                 GUILayout.EndScrollView();
                 GUILayout.EndArea();
-                
+
                 var lastHeight = Mathf.Min(lastRect.y + lastRect.height, maxHeight);
                 if (lastHeight != _previousHeight)
                 {
@@ -105,7 +105,16 @@ namespace Nodemon
                 GUILayout.EndArea();
             }
 
-            UseEvent(rect);
+            // Hit-test against the maximum possible panel height rather than the
+            // last measured _previousHeight. _previousHeight only updates on
+            // Repaint, so when inspector content grows (e.g. toggling a category
+            // dropdown that introduces a new field) there's a one-frame window
+            // where the visible panel is taller than the click-block rect and
+            // clicks in the new bottom slice fall through to the graph view,
+            // selecting whatever node was behind. The visible panel still sizes
+            // to content; only the click-block area covers the worst case.
+            var hitRect = new Rect(rect.x, rect.y, rect.width, maxHeight + 38);
+            UseEvent(hitRect);
         }
         
         void DrawScriptButton(Rect p_rect, Type p_type)
