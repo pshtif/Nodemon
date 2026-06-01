@@ -25,6 +25,16 @@ namespace Nodemon
 
         }
 
+        public override Rect? GetOcclusionRect(Rect p_canvasRect)
+        {
+            if (Graph == null) return null;
+            bool shown = SelectionManager.GetSelectedNode(Graph) != null
+                         || GraphBox.selectedBox != null;
+            if (!shown) return null;
+            // Mirrors the worst-case panel rect used in DrawNodeGUI's UseEvent.
+            return new Rect(p_canvasRect.width - 400, 30, 390, maxHeight + 38);
+        }
+
         public override void DrawGUI(Event p_event, Rect p_rect)
         {
             if (Graph == null)

@@ -55,6 +55,19 @@ namespace Nodemon
         
         public virtual void ProcessMouse(Event p_event, Rect p_rect) { }
 
+        /// <summary>
+        /// Optional click-blocking rect for overlay views (inspector, tab panels,
+        /// etc). When the mouse is inside this rect, the host (MachinaEditorGUI)
+        /// parks the mouse off-screen while background views draw so their
+        /// inline controls — graph-node buttons, port handles, etc — can't
+        /// intercept clicks meant for the overlay. The overlay itself sees the
+        /// real mouse position so its own controls still react.
+        ///
+        /// Returns null when the view has no overlay area (the default — most
+        /// views are pure background or aren't currently visible).
+        /// </summary>
+        public virtual Rect? GetOcclusionRect(Rect p_canvasRect) => null;
+
         protected void UseEvent(Rect p_rect)
         {
             if (p_rect.Contains(Event.current.mousePosition) &&
