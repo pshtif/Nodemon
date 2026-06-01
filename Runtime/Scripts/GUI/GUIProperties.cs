@@ -202,40 +202,43 @@ namespace Nodemon
         {
             bool invalidate = false;
             var seedAttribute = p_fieldInfo.GetCustomAttribute<SeedAttribute>();
-            
-            GUILayout.BeginHorizontal();
 
             if (IsParameterProperty(p_fieldInfo))
             {
-                ParameterProperty(p_label, p_fieldInfo, p_fieldObject, p_reference);
-                
-                if (GUILayout.Button(TextureUtils.GetTexture("Icons/retry_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
+                // Use ParameterProperty's row layout and inject the retry icon
+                // as a trailing extra. The menu icon stays the rightmost element.
+                ParameterProperty(p_label, p_fieldInfo, p_fieldObject, p_reference, () =>
                 {
-                    var random = new System.Random();
-                    if (p_fieldInfo.FieldType == typeof(Parameter<int>))
+                    if (GUILayout.Button(TextureUtils.GetTexture("Icons/retry_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
                     {
-                        Parameter<int> intParameter = (Parameter<int>)p_fieldInfo.GetValue(p_fieldObject);
-                        intParameter.value = random.Next((int)seedAttribute.minValue, (int)seedAttribute.maxValue);
-                    } else if (p_fieldInfo.FieldType == typeof(Parameter<float>))
-                    {
-                        Parameter<float> floatParameter = (Parameter<float>)p_fieldInfo.GetValue(p_fieldObject);
-                        floatParameter.value =
-                            (float)random.NextDouble() * (seedAttribute.maxValue - seedAttribute.minValue) +
-                            seedAttribute.minValue;
-                    } else if (p_fieldInfo.FieldType == typeof(Parameter<double>))
-                    {
-                        Parameter<double> doubleParameter = (Parameter<double>)p_fieldInfo.GetValue(p_fieldObject);
-                        doubleParameter.value =
-                            random.NextDouble() * (seedAttribute.maxValue - seedAttribute.minValue) +
-                            seedAttribute.minValue;
+                        var random = new System.Random();
+                        if (p_fieldInfo.FieldType == typeof(Parameter<int>))
+                        {
+                            Parameter<int> intParameter = (Parameter<int>)p_fieldInfo.GetValue(p_fieldObject);
+                            intParameter.value = random.Next((int)seedAttribute.minValue, (int)seedAttribute.maxValue);
+                        } else if (p_fieldInfo.FieldType == typeof(Parameter<float>))
+                        {
+                            Parameter<float> floatParameter = (Parameter<float>)p_fieldInfo.GetValue(p_fieldObject);
+                            floatParameter.value =
+                                (float)random.NextDouble() * (seedAttribute.maxValue - seedAttribute.minValue) +
+                                seedAttribute.minValue;
+                        } else if (p_fieldInfo.FieldType == typeof(Parameter<double>))
+                        {
+                            Parameter<double> doubleParameter = (Parameter<double>)p_fieldInfo.GetValue(p_fieldObject);
+                            doubleParameter.value =
+                                random.NextDouble() * (seedAttribute.maxValue - seedAttribute.minValue) +
+                                seedAttribute.minValue;
+                        }
+                        invalidate = true;
                     }
-                    invalidate = true;
-                }
+                });
             }
             else
             {
+                GUILayout.BeginHorizontal();
                 ValueProperty(p_label, p_fieldInfo, p_fieldObject, p_reference);
-                
+                GUILayout.FlexibleSpace();
+
                 if (GUILayout.Button(TextureUtils.GetTexture("Icons/retry_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
                 {
                     var random = new System.Random();
@@ -256,10 +259,9 @@ namespace Nodemon
                     }
                     invalidate = true;
                 }
+                GUILayout.EndHorizontal();
             }
 
-            GUILayout.EndHorizontal();
-            
             return invalidate;
         } 
         
@@ -270,16 +272,28 @@ namespace Nodemon
         
         static bool ParameterProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject, IReferencable p_reference)
         {
+            return ParameterProperty(p_label, p_fieldInfo, p_fieldObject, p_reference, null);
+        }
+
+        /// <summary>
+        /// Shared row layout for any Parameter field. <paramref name="drawTrailingExtras"/>
+        /// runs after FlexibleSpace and before the parameter-menu icon, so callers
+        /// (e.g. SeedProperty's retry icon) can stack icons that sit just left of
+        /// the menu icon while the menu icon stays at the row's right edge. Pass
+        /// null for the normal one-icon row.
+        /// </summary>
+        static bool ParameterProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject, IReferencable p_reference, System.Action drawTrailingExtras)
+        {
             Parameter parameter = (Parameter)p_fieldInfo.GetValue(p_fieldObject);
-            
+
             if (parameter == null)
             {
                 RecreateParameter(p_fieldInfo, p_fieldObject);
                 return true;
             }
-            
+
             UniGUI.BeginChangeCheck();
-            
+
             GUILayout.BeginHorizontal();
 
             if (parameter.isExpression)
@@ -289,9 +303,7 @@ namespace Nodemon
                 HandleReferencing(p_reference, p_fieldInfo, false, parameter);
                 // Fixed width keeps long expressions from blowing out the row
                 // and forcing horizontal scroll on the whole inspector. The
-                // TextField scrolls its own content internally — arrow keys
-                // pan the visible window. fieldWidth comes from the host
-                // (NodeInspectorView sets 190); fall back to 190 if unset.
+                // TextField scrolls its own content internally.
                 parameter.expression = UniGUILayout.TextField(parameter.expression,
                     GUILayout.Width(fieldWidth > 0 ? fieldWidth : 190));
                 GUI.color = Color.white;
@@ -301,12 +313,13 @@ namespace Nodemon
                 PropertyField(parameter.GetValueFieldInfo(), parameter, p_reference, p_fieldInfo, p_fieldObject);
             }
 
-            // No FlexibleSpace here — SeedProperty wraps ParameterProperty in its
-            // own outer horizontal and tacks a retry icon on the end. A
-            // FlexibleSpace inside would greedily soak up the outer row's width,
-            // pushing the retry icon off the panel. Instead each field type
-            // pins itself to GUILayout.Width(fieldWidth) so the icon's position
-            // is consistent across modes without any space-fighting.
+            // FlexibleSpace pushes the trailing icons to the right edge of the
+            // row. The menu icon is always last; any extras (Seed's retry
+            // icon, etc.) sit between FlexibleSpace and the menu icon.
+            GUILayout.FlexibleSpace();
+
+            drawTrailingExtras?.Invoke();
+
             GUI.color = parameter.isExpression ? PARAMETER_COLOR : Color.gray;
             if (GUILayout.Button(TextureUtils.GetTexture("Icons/parameter_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
             {
@@ -316,9 +329,9 @@ namespace Nodemon
             GUI.color = Color.white;
             GUILayout.Space(1);
             GUILayout.EndHorizontal();
-            
+
             GUILayout.Space(4);
-            
+
             return UniGUI.EndChangeCheck();
         }
         

@@ -88,7 +88,11 @@ namespace Nodemon
             
             _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, false, false);
 
-            GUIProperties.fieldWidth = 190;
+            // 170 not 190: total Seed row content = labelWidth(150) + fieldWidth(170)
+            // + retry icon (18) + menu icon (18) = 356. Fits the ~370 scrollview
+            // viewport with a 14 px FlexibleSpace margin. Going up to 190 made
+            // Seed rows overflow → horizontal scroll on the whole inspector.
+            GUIProperties.fieldWidth = 170;
             selectedNode.DrawInspector(Owner);
             GUIProperties.fieldWidth = 0;
 
