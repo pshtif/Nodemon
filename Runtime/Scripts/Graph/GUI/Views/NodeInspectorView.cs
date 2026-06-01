@@ -64,12 +64,21 @@ namespace Nodemon
             OverlayBounds.Register(this, rect);
         }
 
-        private void DrawNodeGUI(Rect p_rect) 
+        private void DrawNodeGUI(Rect p_rect)
         {
             var selectedNode = SelectionManager.GetSelectedNode(Graph);
 
             Rect rect = new Rect(p_rect.width - 400, 30, 390, _previousHeight + 38);
-            
+
+            // Registered click-block uses a conservative fallback (maxHeight)
+            // when no Repaint has measured the panel yet — without this the
+            // first MouseDown after selecting a node races against an
+            // undersized rect and the click falls through to the graph view's
+            // node controls. After the first Repaint they match.
+            Rect claimRect = _previousHeight > 0
+                ? rect
+                : new Rect(rect.x, rect.y, rect.width, maxHeight + 38);
+
             DrawBoxGUI(rect, "Properties", TextAnchor.UpperRight, Color.white);
 
             string nodeType = NodeBase.GetNodeNameFromType(selectedNode.GetType());
@@ -107,9 +116,9 @@ namespace Nodemon
             }
 
             UseEvent(rect);
-            OverlayBounds.Register(this, rect);
+            OverlayBounds.Register(this, claimRect);
         }
-        
+
         void DrawScriptButton(Rect p_rect, Type p_type)
         {
             #if UNITY_EDITOR
