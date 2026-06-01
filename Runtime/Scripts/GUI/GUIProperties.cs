@@ -301,8 +301,15 @@ namespace Nodemon
                 PropertyField(parameter.GetValueFieldInfo(), parameter, p_reference, p_fieldInfo, p_fieldObject);
             }
 
+            // Pin the parameter-mode button to the row's right edge. Without this
+            // the button sits flush against the field's right side, which moves
+            // when expression mode (fixed-width TextField) and literal mode
+            // (some types use ExpandWidth) render at different sizes. FlexibleSpace
+            // soaks up the rest of the row so the icon's x position only depends
+            // on the inspector width, not on the field type or content.
+            GUILayout.FlexibleSpace();
+
             GUI.color = parameter.isExpression ? PARAMETER_COLOR : Color.gray;
-            
             if (GUILayout.Button(TextureUtils.GetTexture("Icons/parameter_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
             {
                 var menu = ParameterMenu.Get(parameter, p_fieldInfo.Name, p_fieldObject);
@@ -619,7 +626,8 @@ namespace Nodemon
 
                     if (range == null)
                     {
-                        intValue = UniGUILayout.IntField((int) p_fieldInfo.GetValue(p_fieldObject));
+                        intValue = UniGUILayout.IntField((int) p_fieldInfo.GetValue(p_fieldObject),
+                            GUILayout.Width(fieldWidth > 0 ? fieldWidth : 190));
                     }
                     else
                     {
@@ -648,7 +656,8 @@ namespace Nodemon
 
                     if (range == null)
                     {
-                        byteValue = (byte)UniGUILayout.IntField((byte) p_fieldInfo.GetValue(p_fieldObject));
+                        byteValue = (byte)UniGUILayout.IntField((byte) p_fieldInfo.GetValue(p_fieldObject),
+                            GUILayout.Width(fieldWidth > 0 ? fieldWidth : 190));
                     }
                     else
                     {
@@ -675,7 +684,8 @@ namespace Nodemon
                     float singleValue = 0;
                     if (range == null)
                     {
-                        singleValue = UniGUILayout.FloatField((float) p_fieldInfo.GetValue(p_fieldObject));
+                        singleValue = UniGUILayout.FloatField((float) p_fieldInfo.GetValue(p_fieldObject),
+                            GUILayout.Width(fieldWidth > 0 ? fieldWidth : 190));
                     }
                     else
                     {
