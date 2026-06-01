@@ -215,7 +215,7 @@ namespace Nodemon
                 // as a trailing extra. The menu icon stays the rightmost element.
                 ParameterProperty(p_label, p_fieldInfo, p_fieldObject, p_reference, () =>
                 {
-                    if (GUILayout.Button(TextureUtils.GetTexture("Icons/retry_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
+                    if (GUILayout.Button(TextureUtils.GetTexture("Icons/retry_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.Width(18)))
                     {
                         var random = new System.Random();
                         if (p_fieldInfo.FieldType == typeof(Parameter<int>))
@@ -247,7 +247,7 @@ namespace Nodemon
                 ValueProperty(p_label, p_fieldInfo, p_fieldObject, p_reference);
                 GUILayout.FlexibleSpace();
 
-                if (GUILayout.Button(TextureUtils.GetTexture("Icons/retry_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
+                if (GUILayout.Button(TextureUtils.GetTexture("Icons/retry_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.Width(18)))
                 {
                     var random = new System.Random();
                     if (p_fieldInfo.FieldType == typeof(int))
@@ -329,7 +329,7 @@ namespace Nodemon
             drawTrailingExtras?.Invoke();
 
             GUI.color = parameter.isExpression ? PARAMETER_COLOR : Color.gray;
-            if (GUILayout.Button(TextureUtils.GetTexture("Icons/parameter_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.MaxWidth(18)))
+            if (GUILayout.Button(TextureUtils.GetTexture("Icons/parameter_icon"), ParameterButtonStyle, GUILayout.Height(18), GUILayout.Width(18)))
             {
                 var menu = ParameterMenu.Get(parameter, p_fieldInfo.Name, p_fieldObject);
                 UniGUIGenericMenuPopup.Show(menu, "", Event.current.mousePosition, 240, 300, false, false);
