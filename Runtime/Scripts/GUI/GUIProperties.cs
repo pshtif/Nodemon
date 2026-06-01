@@ -287,7 +287,13 @@ namespace Nodemon
                 GUI.color = PARAMETER_COLOR;
                 UniGUILayout.Label(p_label, GUILayout.Width(labelWidth));
                 HandleReferencing(p_reference, p_fieldInfo, false, parameter);
-                parameter.expression = UniGUILayout.TextField(parameter.expression, GUILayout.ExpandWidth(true));
+                // Fixed width keeps long expressions from blowing out the row
+                // and forcing horizontal scroll on the whole inspector. The
+                // TextField scrolls its own content internally — arrow keys
+                // pan the visible window. fieldWidth comes from the host
+                // (NodeInspectorView sets 190); fall back to 190 if unset.
+                parameter.expression = UniGUILayout.TextField(parameter.expression,
+                    GUILayout.Width(fieldWidth > 0 ? fieldWidth : 190));
                 GUI.color = Color.white;
             }
             else
@@ -587,7 +593,10 @@ namespace Nodemon
                     GUILayout.BeginHorizontal();
                     UniGUILayout.Label(p_label, GUILayout.Width(labelWidth));
                     HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
-                    var stringValue = UniGUILayout.TextField((String) p_fieldInfo.GetValue(p_fieldObject));
+                    // Fixed width so a long string doesn't expand the row past
+                    // the inspector's width. TextField scrolls internally.
+                    var stringValue = UniGUILayout.TextField((String) p_fieldInfo.GetValue(p_fieldObject),
+                        GUILayout.Width(fieldWidth > 0 ? fieldWidth : 190));
                     GUILayout.EndHorizontal();
 
                     if (UniGUI.EndChangeCheck())
