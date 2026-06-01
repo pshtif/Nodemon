@@ -209,7 +209,7 @@ namespace Nodemon
                 // retry icon fits without overflow. Restore right after — every
                 // other row in the inspector keeps the default 190.
                 int savedFieldWidth = fieldWidth;
-                fieldWidth = savedFieldWidth - 20;
+                fieldWidth = savedFieldWidth - 40;
 
                 // Use ParameterProperty's row layout and inject the retry icon
                 // as a trailing extra. The menu icon stays the rightmost element.
