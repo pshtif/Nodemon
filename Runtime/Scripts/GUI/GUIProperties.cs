@@ -561,13 +561,31 @@ namespace Nodemon
             switch (type)
             {
                 case "System.String":
+                    var multiline = (p_parameterInfo == null ? p_fieldInfo : p_parameterInfo)
+                        .GetAttribute<MultilineAttribute>();
+
                     UniGUI.BeginChangeCheck();
-                    
-                    GUILayout.BeginHorizontal();
-                    UniGUILayout.Label(p_label, GUILayout.Width(labelWidth));
-                    HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
-                    var stringValue = UniGUILayout.TextField((String) p_fieldInfo.GetValue(p_fieldObject));
-                    GUILayout.EndHorizontal();
+
+                    string stringValue;
+                    if (multiline != null)
+                    {
+                        // Stack the label above so the TextArea can take the
+                        // inspector's full content width. Height scales with the
+                        // attribute's line count; the underlying string is
+                        // unbounded (user can scroll past the visible window).
+                        UniGUILayout.Label(p_label);
+                        stringValue = GUILayout.TextArea(
+                            (string)p_fieldInfo.GetValue(p_fieldObject),
+                            GUILayout.Height(multiline.lines * 16f));
+                    }
+                    else
+                    {
+                        GUILayout.BeginHorizontal();
+                        UniGUILayout.Label(p_label, GUILayout.Width(labelWidth));
+                        HandleReferencing(p_reference, referenceInfo, false, p_parameterInfo == null ? null : (Parameter)p_fieldObject);
+                        stringValue = UniGUILayout.TextField((string)p_fieldInfo.GetValue(p_fieldObject));
+                        GUILayout.EndHorizontal();
+                    }
 
                     if (UniGUI.EndChangeCheck())
                     {
