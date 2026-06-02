@@ -18,7 +18,16 @@ namespace Nodemon
         private float _previousHeight = -1;
         private Vector2 _scrollPosition;
 
-        protected object _previouslyInspected;
+        // Track the LOGICAL identity of what's inspected, not the runtime
+        // instance reference. Per-keystroke RegisterCompleteObjectUndo +
+        // SetDirty can cause Unity to reload the graph asset's Nodes list,
+        // handing out fresh instance references for the same logical node;
+        // the previous reference-equality check tripped on that and called
+        // FocusControl("") every edit, dropping the active text field's
+        // focus. The id is stable across serialization round-trips so it
+        // only mismatches on real selection changes.
+        protected string    _previouslyInspectedNodeId;
+        protected GraphBox  _previouslyInspectedBox;
 
         public NodeInspectorView()
         {
@@ -31,17 +40,19 @@ namespace Nodemon
                 return;
 
             var selectedNode = SelectionManager.GetSelectedNode(Graph);
-            
+
             if (selectedNode != null)
             {
                 DrawNodeGUI(p_rect);
-                if (_previouslyInspected != selectedNode) GUI.FocusControl("");
-                _previouslyInspected = selectedNode;
+                if (_previouslyInspectedNodeId != selectedNode.Id) GUI.FocusControl("");
+                _previouslyInspectedNodeId = selectedNode.Id;
+                _previouslyInspectedBox    = null;
             } else if (GraphBox.selectedBox != null)
             {
                 DrawBoxGUI(p_rect);
-                if (_previouslyInspected != GraphBox.selectedBox) GUI.FocusControl("");
-                _previouslyInspected = GraphBox.selectedBox;
+                if (!ReferenceEquals(_previouslyInspectedBox, GraphBox.selectedBox)) GUI.FocusControl("");
+                _previouslyInspectedBox    = GraphBox.selectedBox;
+                _previouslyInspectedNodeId = null;
             }
         }
 
