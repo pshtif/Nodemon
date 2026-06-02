@@ -33,7 +33,7 @@ namespace Nodemon
         
         public static void FetchGlobalVariables()
         {
-            var components = GameObject.FindObjectsOfType<VariablesController>();
+            var components = GameObject.FindObjectsByType<VariablesController>();
             if (components.Length > 1)
             {
                 Debug.LogWarning("Multiple global variables found, only first instance used.");

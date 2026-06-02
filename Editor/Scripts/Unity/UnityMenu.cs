@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 
 namespace Nodemon.Editor
@@ -33,22 +34,19 @@ namespace Nodemon.Editor
             return true;
         }
         
+        static NamedBuildTarget CurrentTarget =>
+            NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+
         static List<string> GetAllDefines()
-        {
-            string definesString =
-                PlayerSettings.GetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
-            return definesString.Split(';').ToList();
-        }
-    
+            => PlayerSettings.GetScriptingDefineSymbols(CurrentTarget).Split(';').ToList();
+
         static void SetEditorGUISymbols()
         {
             List<string> allDefines = GetAllDefines();
-       
             if (!allDefines.Contains("USE_EDITORGUI"))
                 allDefines.Add("USE_EDITORGUI");
-            
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup,
-                string.Join(";", allDefines.ToArray()));
+
+            PlayerSettings.SetScriptingDefineSymbols(CurrentTarget, string.Join(";", allDefines));
             Debug.Log(GetAllDefines());
         }
 
@@ -56,9 +54,8 @@ namespace Nodemon.Editor
         {
             List<string> allDefines = GetAllDefines();
             allDefines.Remove("USE_EDITORGUI");
-        
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup,
-                string.Join(";", allDefines.ToArray()));
+
+            PlayerSettings.SetScriptingDefineSymbols(CurrentTarget, string.Join(";", allDefines));
         }
     }
 }
