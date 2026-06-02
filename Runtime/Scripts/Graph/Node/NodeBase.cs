@@ -587,11 +587,21 @@ namespace Nodemon
 
             string commentText = _model.comment;
             Vector2 size = commentStyle.CalcSize( new GUIContent( commentText ) );
-            
+
+            // CalcSize returns the tight glyph-metric extent — it doesn't
+            // include descender pixels (g, y, p, q) or the trailing AA
+            // fringe, so a TextArea sized exactly to CalcSize clips the
+            // bottom couple of px of those characters. Pad both axes by a
+            // small constant; the surrounding box is already +16/+26 so it
+            // absorbs the extra without visual change.
+            const float kCommentPad = 4f;
+            float textW = size.x + kCommentPad;
+            float textH = size.y + kCommentPad;
+
             GUI.color = new Color(1,1,1,.6f);
             GUI.Box(new Rect(offsetRect.x - 10, offsetRect.y - size.y - 26, size.x < 34 ? 50 : size.x + 16, size.y + 26), "", p_owner.GetSkin().GetStyle("NodeComment"));
             GUI.color = Color.white;
-            string text = GUI.TextArea(new Rect(offsetRect.x - 2, offsetRect.y - size.y - 21, size.x, size.y), commentText, commentStyle);
+            string text = GUI.TextArea(new Rect(offsetRect.x - 2, offsetRect.y - size.y - 21, textW, textH), commentText, commentStyle);
             _model.comment = text;
         }
 
