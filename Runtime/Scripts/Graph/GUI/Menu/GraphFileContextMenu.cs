@@ -18,7 +18,7 @@ namespace Nodemon
             UniGUIGenericMenuPopup.Show(Get(p_graph), "", _lastMousePosition, 160, 100, false, false);
         }
         
-        public UniGUIGenericMenu Get(GraphBase p_graph)
+        public virtual UniGUIGenericMenu Get(GraphBase p_graph)
         {
             UniGUIGenericMenu menu = new UniGUIGenericMenu();
             
