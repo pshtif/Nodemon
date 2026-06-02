@@ -220,6 +220,25 @@ namespace Nodemon
             int connectorIndex;
             Graph.HitsNode(p_owner, mousePosition, out hitNode, out connectorType, out connectorIndex);
 
+            // Hover over an input dot with declared semantic metadata →
+            // name + description + expected attribute. Falls through to the
+            // existing error-tooltip path otherwise so error reporting
+            // remains the default for hovers that aren't over a labelled
+            // connector.
+            if (hitNode != null && connectorIndex >= 0 && connectorType == ConnectorType.INPUT)
+            {
+                var def = hitNode.GetInputDef(connectorIndex);
+                if (def != null)
+                {
+                    string tip = "Input " + connectorIndex + ": " + def.Name;
+                    if (!string.IsNullOrEmpty(def.Description)) tip += "\n" + def.Description;
+                    if (!string.IsNullOrEmpty(def.Expects))     tip += "\nExpects: \"" + def.Expects + "\"";
+                    if (!def.Required)                          tip += "\n(Optional)";
+                    p_owner.SetTooltip(tip);
+                    return;
+                }
+            }
+
             if (hitNode != null && hitNode.hasErrorsInExecution)
             {
                 p_owner.SetTooltip(hitNode.errorInExecutionMessage);

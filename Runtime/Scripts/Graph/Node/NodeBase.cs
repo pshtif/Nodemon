@@ -106,6 +106,21 @@ namespace Nodemon
             return InputsAllowMultiple[p_index];
         }
 
+        // Per-input semantic metadata (label / description / expected
+        // attribute / required flag). Indexed by port number; null entries
+        // mean the input has no declared metadata (legacy un-named inputs
+        // keep working). Populated from [Input] attributes in
+        // InitializeAttributes.
+        [NonSerialized]
+        private InputAttribute[] _inputDefs;
+
+        public InputAttribute GetInputDef(int p_index)
+        {
+            if (!_attributesInitialized) InitializeAttributes();
+            if (_inputDefs == null || p_index < 0 || p_index >= _inputDefs.Length) return null;
+            return _inputDefs[p_index];
+        }
+
         [NonSerialized]
         private string[] _outputs;
         public string[] Outputs
@@ -181,9 +196,25 @@ namespace Nodemon
         {
             InputCountAttribute inputAttribute = (InputCountAttribute) Attribute.GetCustomAttribute(GetType(), typeof(InputCountAttribute));
             _inputCount = inputAttribute == null ? 0 : inputAttribute.count;
-            
+
             InputAllowMultipleAttribute inputAllowMultipleAttribute = (InputAllowMultipleAttribute) Attribute.GetCustomAttribute(GetType(), typeof(InputAllowMultipleAttribute));
             _inputsAllowMultiple = inputAllowMultipleAttribute == null ? new bool[0] : inputAllowMultipleAttribute.allowMultiple;
+
+            // Per-input metadata from [Input(...)] attributes. AllowMultiple
+            // = true so the class can carry one per input. Indexed by Index
+            // so users can declare them in any order and we still map them
+            // straight to the port number.
+            var inputDefAttrs = (InputAttribute[])Attribute.GetCustomAttributes(GetType(), typeof(InputAttribute));
+            if (inputDefAttrs != null && inputDefAttrs.Length > 0 && _inputCount > 0)
+            {
+                _inputDefs = new InputAttribute[_inputCount];
+                for (int i = 0; i < inputDefAttrs.Length; i++)
+                {
+                    var a = inputDefAttrs[i];
+                    if (a.Index >= 0 && a.Index < _inputCount)
+                        _inputDefs[a.Index] = a;
+                }
+            }
             
             OutputLabelsAttribute outputLabelsAttribute = (OutputLabelsAttribute) Attribute.GetCustomAttribute(GetType(), typeof(OutputLabelsAttribute));
             _outputs = outputLabelsAttribute == null ? new string[0] : outputLabelsAttribute.labels;
