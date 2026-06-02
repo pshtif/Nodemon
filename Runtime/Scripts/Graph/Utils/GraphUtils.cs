@@ -3,9 +3,7 @@
  */
 
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using OdinSerializer;
 using UnityEngine;
 
 namespace Nodemon
@@ -50,32 +48,6 @@ namespace Nodemon
         public static bool IsSubGraph(string p_path)
         {
             return !string.IsNullOrEmpty(p_path);
-        }
-        
-        public static void ImportJSON(GraphBase p_graph)
-        {
-#if UNITY_EDITOR
-            string path = UnityEditor.EditorUtility.OpenFilePanel("Load JSON", Application.dataPath, "json");
-
-            byte[] content = File.ReadAllBytes(path);
-            List<Object> references = new Object[] {p_graph}.ToList(); // refactor to serialize to acquire all correct ones before deserialization
-            p_graph.DeserializeFromBytes(content, DataFormat.JSON, ref references);
-#endif
-        }
-
-        public static void ExportJSON(GraphBase p_graph)
-        {
-#if UNITY_EDITOR
-            var path = UnityEditor.EditorUtility.SaveFilePanel(
-                "Export Graph JSON",
-                Application.dataPath,
-                "",
-                "json");
-
-            List<Object> references = new List<Object>();
-            byte[] bytes = p_graph.SerializeToBytes(DataFormat.JSON, ref references);
-            File.WriteAllBytes(path, bytes);
-#endif
         }
         
         public static T CreateGraphAsAssetFile<T>(T p_graph = null) where T : GraphBase

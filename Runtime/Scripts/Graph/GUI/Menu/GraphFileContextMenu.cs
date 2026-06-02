@@ -18,14 +18,10 @@ namespace Nodemon
             UniGUIGenericMenuPopup.Show(Get(p_graph), "", _lastMousePosition, 160, 100, false, false);
         }
         
+        // Empty by default — hosts override Get to add their own items
+        // (see Machina's MachinaGraphFileContextMenu for the format-aware
+        // import/export entries).
         public virtual UniGUIGenericMenu Get(GraphBase p_graph)
-        {
-            UniGUIGenericMenu menu = new UniGUIGenericMenu();
-            
-            menu.AddItem(new GUIContent("Import JSON"), false, () => GraphUtils.ImportJSON(p_graph));
-            menu.AddItem(new GUIContent("Export JSON"), false, () => GraphUtils.ExportJSON(p_graph));
-
-            return menu;
-        }
+            => new UniGUIGenericMenu();
     }
 }
