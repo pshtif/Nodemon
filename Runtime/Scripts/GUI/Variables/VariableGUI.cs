@@ -53,15 +53,28 @@ namespace Nodemon
             bool invalidate = false;
             var variable = p_variables.GetVariable(p_name);
             GUILayout.BeginHorizontal(GUILayout.Height(14));
-            string newName = UniGUILayout.TextField(p_name, GUILayout.Width(120));
+            string newName = UniGUILayout.TextField(p_name, GUILayout.Width(110));
             GUILayout.Space(2);
             if (newName != p_name)
             {
-                invalidate = true;   
+                invalidate = true;
                 p_variables.RenameVariable(p_name, newName);
             }
-            
-            invalidate = invalidate || variable.ValueField(p_maxWidth-150, p_bindable);
+
+            // Type label — short type name (float, int, Vector3, ...) so
+            // mismatched-type bugs ("@test resolves to a Vector3 but
+            // radius wanted a float") are visible at a glance instead of
+            // failing silently inside the expression eval.
+            var typeName = Variable.ConvertToTypeName(variable.GetVariableType());
+            var typeStyle = new GUIStyle(GUI.skin.label);
+            typeStyle.fontSize  = 10;
+            typeStyle.alignment = TextAnchor.MiddleLeft;
+            var oldTypeColor = GUI.contentColor;
+            GUI.contentColor = new Color(0.6f, 0.7f, 0.9f);
+            GUILayout.Label(typeName, typeStyle, GUILayout.Width(56));
+            GUI.contentColor = oldTypeColor;
+
+            invalidate = invalidate || variable.ValueField(p_maxWidth-206, p_bindable);
 
             var oldColor = GUI.color;
             // Yellow = "this variable is sourced from outside the panel

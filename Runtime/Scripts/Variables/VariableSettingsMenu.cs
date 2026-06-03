@@ -55,7 +55,7 @@ namespace Nodemon
                 }
                 else
                 {
-                    menu.AddItem(new GUIContent("Set as Lookup"), false, () => OnLookupVariable(p_variables, p_name));
+                    menu.AddItem(new GUIContent("Set as Lookup"), false, () => OnLookupVariable(p_variables, p_name, p_bindable));
                 }
 
                 // INPUT mode — host-supplied graph input (Houdini HDA-style
@@ -66,7 +66,7 @@ namespace Nodemon
                 if (!variable.IsLookup)
                 {
                     string label = variable.IsInput ? "Unset Input" : "Set as Input";
-                    menu.AddItem(new GUIContent(label), false, () => OnInputVariable(p_variables, p_name));
+                    menu.AddItem(new GUIContent(label), false, () => OnInputVariable(p_variables, p_name, p_bindable));
                 }
             }
 
@@ -76,10 +76,14 @@ namespace Nodemon
             return menu;
         }
 
-        static void OnInputVariable(Variables p_variables, string p_name)
+        static void OnInputVariable(Variables p_variables, string p_name, IVariableBindable p_bindable)
         {
             var variable = p_variables.GetVariable(p_name);
             variable.SetAsInput(!variable.IsInput);
+            // Same reason as OnLookupVariable above — menu callback fires
+            // outside the panel's BeginChangeCheck, so flipping INPUT on/off
+            // doesn't propagate without this explicit MarkDirty.
+            if (p_bindable != null) p_bindable.MarkDirty();
         }
         
         static Dictionary<Component, List<PropertyInfo>> GetBindableProperties(Variables p_variables, string p_name, IVariableBindable p_bindable)
@@ -179,10 +183,14 @@ namespace Nodemon
             // TODO dirty the wrapper
         }
         
-        static void OnLookupVariable(Variables p_variables, string p_name)
+        static void OnLookupVariable(Variables p_variables, string p_name, IVariableBindable p_bindable)
         {
             var variable = p_variables.GetVariable(p_name);
             variable.SetAsLookup(!variable.IsLookup);
+            // Menu callbacks fire OUTSIDE the variables panel's BeginChangeCheck
+            // — without this explicit dirty propagation, the toggle silently
+            // takes effect on the variable model but the graph never re-cooks.
+            if (p_bindable != null) p_bindable.MarkDirty();
         }
 
         static void OnCopyVariable(Variables p_variables, string p_name)
