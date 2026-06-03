@@ -57,12 +57,29 @@ namespace Nodemon
                 {
                     menu.AddItem(new GUIContent("Set as Lookup"), false, () => OnLookupVariable(p_variables, p_name));
                 }
+
+                // INPUT mode — host-supplied graph input (Houdini HDA-style
+                // promoted parameter). The stored value becomes the default;
+                // the host overrides at cook time via the binding component.
+                // Mutually exclusive with Bound / Lookup, so we only offer
+                // the toggle outside those modes.
+                if (!variable.IsLookup)
+                {
+                    string label = variable.IsInput ? "Unset Input" : "Set as Input";
+                    menu.AddItem(new GUIContent(label), false, () => OnInputVariable(p_variables, p_name));
+                }
             }
-            
+
             menu.AddItem(new GUIContent("Delete Variable"), false, () => OnDeleteVariable(p_variables, p_name, p_bindable));
             menu.AddItem(new GUIContent("Copy Variable"), false, () => OnCopyVariable(p_variables, p_name));
 
             return menu;
+        }
+
+        static void OnInputVariable(Variables p_variables, string p_name)
+        {
+            var variable = p_variables.GetVariable(p_name);
+            variable.SetAsInput(!variable.IsInput);
         }
         
         static Dictionary<Component, List<PropertyInfo>> GetBindableProperties(Variables p_variables, string p_name, IVariableBindable p_bindable)

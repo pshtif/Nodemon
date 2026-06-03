@@ -64,7 +64,10 @@ namespace Nodemon
             invalidate = invalidate || variable.ValueField(p_maxWidth-150, p_bindable);
 
             var oldColor = GUI.color;
-            GUI.color = variable.IsBound || variable.IsLookup ? Color.yellow : Color.gray;
+            // Yellow = "this variable is sourced from outside the panel
+            // value" (component-bound, scene-looked-up, or host-supplied).
+            // Gray = plain stored value.
+            GUI.color = variable.IsBound || variable.IsLookup || variable.IsInput ? Color.yellow : Color.gray;
             
             GUILayout.BeginVertical(GUILayout.Width(16));
             GUILayout.Space(2);

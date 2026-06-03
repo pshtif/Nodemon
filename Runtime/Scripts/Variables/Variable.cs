@@ -16,10 +16,25 @@ namespace Nodemon
     public abstract class Variable
     {
         public VariableType Type { get; protected set; } = VariableType.VALUE;
-        
+
         public bool IsBound => Type == VariableType.BOUND;
 
         public bool IsLookup => Type == VariableType.LOOKUP;
+
+        /// <summary>True when this variable is a graph-input declaration —
+        /// the host supplies the value at resolve time via
+        /// <c>IGraphController.TryResolveInputBinding</c>, falling back to
+        /// the stored default when no binding exists.</summary>
+        public bool IsInput => Type == VariableType.INPUT;
+
+        /// <summary>Switch this variable into / out of INPUT mode.
+        /// Symmetric with <see cref="SetAsLookup"/>; INPUT and LOOKUP are
+        /// mutually exclusive modes, so flipping one off implies the
+        /// other (or VALUE) takes over.</summary>
+        public void SetAsInput(bool p_input)
+        {
+            Type = p_input ? VariableType.INPUT : VariableType.VALUE;
+        }
         
         abstract protected object objectValue { get; set; }
 
