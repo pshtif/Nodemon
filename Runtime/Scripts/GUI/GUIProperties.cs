@@ -100,6 +100,9 @@ namespace Nodemon
             if (IsUnityObjectProperty(p_fieldInfo))
                 return UnityObjectProperty(label, p_fieldInfo, p_fieldObject);
 
+            if (IsUnityObjectListProperty(p_fieldInfo))
+                return UnityObjectListProperty(label, p_fieldInfo, p_fieldObject);
+
             if (IsExposedReferenceProperty(p_fieldInfo))
                 return ExposedReferenceProperty(label, p_fieldInfo, p_fieldObject, p_reference, p_propertyTable);
             
@@ -490,6 +493,47 @@ namespace Nodemon
             return false;
         }
         
+        static bool IsUnityObjectListProperty(FieldInfo p_fieldInfo)
+        {
+            var t = p_fieldInfo.FieldType;
+            if (!t.IsGenericType || t.GetGenericTypeDefinition() != typeof(List<>)) return false;
+            return typeof(UnityEngine.Object).IsAssignableFrom(t.GenericTypeArguments[0]);
+        }
+
+        static bool UnityObjectListProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject)
+        {
+            var elementType = p_fieldInfo.FieldType.GenericTypeArguments[0];
+            var list = (System.Collections.IList)p_fieldInfo.GetValue(p_fieldObject);
+            if (list == null)
+            {
+                list = (System.Collections.IList)Activator.CreateInstance(p_fieldInfo.FieldType);
+                p_fieldInfo.SetValue(p_fieldObject, list);
+            }
+
+            bool changed = false;
+
+            GUILayout.BeginHorizontal(GUILayout.Width(labelWidth + (fieldWidth > 0 ? fieldWidth : 190)));
+            GUILayout.Label(p_label, GUILayout.Width(labelWidth));
+            int newCount = UniGUILayout.IntField(list.Count, GUILayout.Width(fieldWidth > 0 ? fieldWidth : 190));
+            GUILayout.EndHorizontal();
+
+            if (newCount < 0) newCount = 0;
+            while (list.Count > newCount) { list.RemoveAt(list.Count - 1); changed = true; }
+            while (list.Count < newCount) { list.Add(null); changed = true; }
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                GUILayout.BeginHorizontal(GUILayout.Width(labelWidth + (fieldWidth > 0 ? fieldWidth : 190)));
+                GUILayout.Label("  [" + i + "]", GUILayout.Width(labelWidth));
+                var current = (UnityEngine.Object)list[i];
+                var next = UniGUILayout.ObjectField(current, elementType, false);
+                GUILayout.EndHorizontal();
+                if (next != current) { list[i] = next; changed = true; }
+            }
+
+            return changed;
+        }
+
         static bool IsExposedReferenceProperty(FieldInfo p_fieldInfo)
         {
             return p_fieldInfo.FieldType.IsGenericType &&
@@ -539,7 +583,7 @@ namespace Nodemon
                 {
                     if (newValue != null)
                     {
-                        PropertyName newExposedName = new PropertyName(UnityEngine.GUID.Generate().ToString());
+                        PropertyName newExposedName = new PropertyName(UnityEditor.GUID.Generate().ToString());
                         exposedReference.GetType().GetField("exposedName")
                             .SetValue(exposedReference, newExposedName);
                         p_propertyTable.SetReferenceValue(newExposedName, newValue);
