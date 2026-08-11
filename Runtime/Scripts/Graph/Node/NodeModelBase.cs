@@ -39,6 +39,62 @@ namespace Nodemon
         public Parameter<int> seed;
         
         private int groupsMinized = -1;
+
+        /// <summary>Fields hidden by <see cref="VisibleWhenAttribute"/>, worked
+        /// out once per LAYOUT pass and reused for every other pass in the frame.
+        ///
+        /// It must NOT be recomputed per pass. UniGUI's text-backed fields claim
+        /// the control name "UniGUIField_&lt;ordinal&gt;" in draw order, and the
+        /// ordinal counter resets per pass — so if the enum controlling
+        /// visibility changes during an event pass, a set recomputed on the
+        /// following repaint shifts every ordinal after it and the edit in
+        /// flight lands on a different field. Latching on Layout is the same
+        /// rule IMGUI already imposes on control counts.
+        ///
+        /// Null after a recompile, which recomputes on the next pass.</summary>
+        [NonSerialized] private HashSet<string> _hiddenFields;
+
+        /// <summary>Which fields to skip this pass. Empty — and so a no-op — for
+        /// every model that uses no visibility rules, which is all but the
+        /// constraint node.</summary>
+        private HashSet<string> HiddenFields(FieldInfo[] p_fields)
+        {
+            if (_hiddenFields != null && Event.current != null && Event.current.type != EventType.Layout)
+                return _hiddenFields;
+
+            var hidden = new HashSet<string>();
+            foreach (var field in p_fields)
+            {
+                VisibleWhenAttribute rule = field.GetCustomAttribute<VisibleWhenAttribute>();
+                if (rule == null)
+                    continue;
+
+                // Anything we cannot read confidently stays VISIBLE. A hidden
+                // field the user cannot find is worse than a spare one.
+                FieldInfo controller = GetType().GetField(rule.Controller);
+                if (controller == null)
+                    continue;
+                Parameter parameter = controller.GetValue(this) as Parameter;
+                if (parameter == null || parameter.isExpression)
+                    continue;
+
+                int value;
+                try
+                {
+                    value = Convert.ToInt32(parameter.value);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (Array.IndexOf(rule.Values, value) < 0)
+                    hidden.Add(field.Name);
+            }
+
+            _hiddenFields = hidden;
+            return _hiddenFields;
+        }
         
         public NodeModelBase Clone(IExposedPropertyTable p_controller)
         {
@@ -111,6 +167,8 @@ namespace Nodemon
 
             var fields = this.GetType().GetFields();
             Array.Sort(fields, NodeSort.GroupSort);
+            // Latched for the whole frame — see HiddenFields.
+            var hidden = HiddenFields(fields);
             string lastGroup = "";
             bool lastGroupMinimized = false;
             int groupIndex = 1;
@@ -118,7 +176,13 @@ namespace Nodemon
             {
                 if (field.GetCustomAttribute<HideInInspector>() != null)
                     continue;
-                if (field.IsConstant()) 
+                if (field.IsConstant())
+                    continue;
+                // A group whose every field is hidden still draws its title.
+                // Nothing pairs VisibleWhen with TitledGroup today; restructuring
+                // the loop to suppress it would renumber the group masks that
+                // every other node's collapse state is keyed on.
+                if (hidden.Count > 0 && hidden.Contains(field.Name))
                     continue;
 
                 TitledGroupAttribute ga = field.GetCustomAttribute<TitledGroupAttribute>();
