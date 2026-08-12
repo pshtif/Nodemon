@@ -19,7 +19,18 @@ namespace Nodemon
         protected IGraphController _controller;
 
         public IGraphController Controller => _controller;
-        
+
+        /// <summary>
+        /// Where this graph's node types come from, or <c>null</c> to discover them by
+        /// reflecting over <see cref="NodeBase"/> subclasses — which is what a graph does
+        /// unless it says otherwise.
+        ///
+        /// <para>Override when the node types are described by something other than C#
+        /// attributes, so the description has one home rather than two that drift. The
+        /// reflection path is unchanged by this existing.</para>
+        /// </summary>
+        public virtual INodeProvider NodeProvider => null;
+
         [SerializeField]
         protected List<GraphBox> _boxes = new List<GraphBox>();
 
@@ -56,6 +67,21 @@ namespace Nodemon
         protected List<NodeBase> _nodes = new List<NodeBase>();
         
         public List<NodeBase> Nodes => _nodes;
+
+        /// <summary>Re-point every node's graph reference at this graph.
+        ///
+        /// <para>Call after populating a graph by COPYING serialized data from another one:
+        /// the nodes arrive still referencing their source graph. See
+        /// <see cref="NodeBase.RebindGraph"/>.</para>
+        /// </summary>
+        public void RebindNodes()
+        {
+            if (_nodes == null) return;
+            foreach (var n in _nodes)
+            {
+                if (n != null) n.RebindGraph(this);
+            }
+        }
         
         [SerializeField]
         protected List<NodeConnection> _connections = new List<NodeConnection>();
@@ -65,6 +91,14 @@ namespace Nodemon
         public bool HasNodeOfType(Type p_nodeType)
         {
             return Nodes.Exists(n => p_nodeType.IsAssignableFrom(n.GetType()));
+        }
+
+        /// <summary>Single-instance check for provider-supplied nodes, which share one
+        /// C# class and so cannot be told apart by type.</summary>
+        public bool HasNodeOfTypeId(string p_typeId)
+        {
+            if (string.IsNullOrEmpty(p_typeId)) return false;
+            return Nodes.Exists(n => n is ITypedNode typed && typed.TypeId == p_typeId);
         }
         
         public bool HasNodeOfType<T>() where T : NodeBase
@@ -171,9 +205,20 @@ namespace Nodemon
         {
             if (string.IsNullOrEmpty(p_id))
             {
-                string type = p_node.GetType().ToString();
-                int dotIndex = type.IndexOf("."); 
-                p_id = type.Substring(dotIndex + 1, type.Length-(dotIndex+5)) + "1";
+                // A provider-supplied node names itself: every one of them shares a single
+                // C# class, so deriving the id from the type would name each of them the
+                // same thing and the numbering below would be all that distinguished a
+                // Grid from a Merge.
+                if (p_node is ITypedNode typed && !string.IsNullOrEmpty(typed.TypeId))
+                {
+                    p_id = typed.TypeId + "1";
+                }
+                else
+                {
+                    string type = p_node.GetType().ToString();
+                    int dotIndex = type.IndexOf(".");
+                    p_id = type.Substring(dotIndex + 1, type.Length-(dotIndex+5)) + "1";
+                }
             }
 
             while (Nodes.Exists(n => n.Id == p_id))

@@ -46,6 +46,42 @@ namespace Nodemon
             return category;
         }
 
+        /// <summary>
+        /// Create a node from a <see cref="NodeDescriptor"/>, for graphs whose types come
+        /// from an <see cref="INodeProvider"/> rather than from C# classes.
+        ///
+        /// <para>The provider builds the instance — it owns which class backs a type id —
+        /// while placement, undo and the single-instance rule stay here, so a
+        /// provider-supplied node behaves exactly like a reflected one once it exists.</para>
+        /// </summary>
+        public static NodeBase CreateNode(GraphBase p_graph, NodeDescriptor p_descriptor, Vector2 p_position)
+        {
+            if (p_graph == null || p_descriptor == null) return null;
+
+            INodeProvider provider = p_graph.NodeProvider;
+            if (provider == null) return null;
+
+            if (!p_descriptor.AllowMultipleInstances && p_graph.HasNodeOfTypeId(p_descriptor.TypeId))
+                return null;
+
+            UniversalUndo.RegisterCompleteObjectUndo(p_graph, "Create " + p_descriptor.Label);
+
+            NodeBase node = provider.CreateNode(p_graph, p_descriptor);
+
+            if (node != null)
+            {
+                node.rect = new Rect(p_position.x, p_position.y, 0, 0);
+                p_graph.Nodes.Add(node);
+                // After placement, so a companion node can position itself relative to
+                // this one — see INodeProvider.PostCreate.
+                provider.PostCreate(p_graph, node, p_position);
+            }
+
+            p_graph.MarkDirty();
+
+            return node;
+        }
+
         public static NodeBase CreateNode(GraphBase p_graph, Type p_nodeType, Vector2 p_position)
         {
             if (!CanHaveMultipleInstances(p_nodeType) && p_graph.GetNodeByType(p_nodeType) != null)

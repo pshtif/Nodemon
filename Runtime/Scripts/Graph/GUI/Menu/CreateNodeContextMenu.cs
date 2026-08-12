@@ -33,7 +33,15 @@ namespace Nodemon
         {
             UniGUIGenericMenu menu = new UniGUIGenericMenu();
             
-            if (p_graph != null)
+            // A graph that describes its own node types is asked; everything else is
+            // discovered by reflection exactly as before. The two never mix: a provider
+            // is the whole answer for that graph, so a half-migrated palette — some
+            // entries from data, some from stray classes — is not a state that exists.
+            if (p_graph != null && p_graph.NodeProvider != null)
+            {
+                AddProvidedNodes(menu, p_graph);
+            }
+            else if (p_graph != null)
             {
                 List<Type> nodeTypes = TypeUtils.GetAllAssignableTypes(typeof(NodeBase));
                 foreach (Type type in nodeTypes)
@@ -78,6 +86,40 @@ namespace Nodemon
             }
 
             return menu;
+        }
+
+        void AddProvidedNodes(UniGUIGenericMenu p_menu, GraphBase p_graph)
+        {
+            var provider = p_graph.NodeProvider;
+            foreach (NodeDescriptor descriptor in provider.Descriptors)
+            {
+                if (descriptor == null || descriptor.Hidden)
+                    continue;
+
+                // Same single-instance rule as the reflection path, asked of the
+                // descriptor instead of a [Settings] attribute.
+                if (!descriptor.AllowMultipleInstances && p_graph.HasNodeOfTypeId(descriptor.TypeId))
+                    continue;
+
+                NodeDescriptor captured = descriptor;
+                p_menu.AddItem(
+                    new GUIContent(captured.MenuPath, captured.Tooltip ?? ""), false,
+                    () => CreateProvidedNode(p_graph, captured));
+            }
+        }
+
+        void CreateProvidedNode(GraphBase p_graph, NodeDescriptor p_descriptor)
+        {
+            Vector2 offset = p_graph.viewOffset;
+            Vector2 position = new Vector2(_lastMousePosition.x * p_graph.zoom - offset.x,
+                                           _lastMousePosition.y * p_graph.zoom - offset.y);
+
+            var node = NodeUtils.CreateNode(p_graph, p_descriptor, position);
+
+            if (node != null && SelectionManager.connectingNode != null)
+            {
+                SelectionManager.EndConnectionDrag(p_graph, node, 0);
+            }
         }
 
         bool IsHidden(Type p_type)

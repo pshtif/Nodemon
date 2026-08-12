@@ -25,6 +25,10 @@ namespace Nodemon
 
         private static int labelWidth = 150;
 
+        /// <summary>Row label column, so a caller drawing its OWN row can line up with the
+        /// ones this class draws. Read-only: the width is this class's to decide.</summary>
+        public static int LabelWidth => labelWidth;
+
         public static int fieldWidth = 0;
 
         private static GUIStyle _parameterButtonStyle;
@@ -125,18 +129,62 @@ namespace Nodemon
 
         private static GUIContent GetFieldName(FieldInfo p_nameInfo)
         {
-            string nameString = UniGUI.NicifyString(p_nameInfo.Name);//ObjectNames.NicifyVariableName(p_nameInfo.Name);
-            nameString = nameString.Substring(0, 1).ToUpper() + nameString.Substring(1);
+            // Read through the VIRTUAL GetCustomAttributes rather than the
+            // GetCustomAttribute<T>() extension: the extension routes through
+            // Attribute.GetCustomAttribute, which only understands runtime reflection objects
+            // and returns null for any custom FieldInfo. A field described by something other
+            // than C# — a schema, say — would silently lose every attribute here.
+            LabelAttribute labelAttribute = FirstAttribute<LabelAttribute>(p_nameInfo);
+
+            // An authored label is used verbatim. Nicifying splits on capitals, which is
+            // right for an identifier and wrong for prose — it would double-space a label
+            // that already has spaces and render "FPS" as "F P S".
+            string nameString;
+            if (labelAttribute != null && !string.IsNullOrEmpty(labelAttribute.label))
+            {
+                nameString = labelAttribute.label;
+            }
+            else
+            {
+                nameString = UniGUI.NicifyString(p_nameInfo.Name);//ObjectNames.NicifyVariableName(p_nameInfo.Name);
+                nameString = nameString.Substring(0, 1).ToUpper() + nameString.Substring(1);
+            }
             
-            TooltipAttribute tooltipAttribute = p_nameInfo.GetCustomAttribute<TooltipAttribute>();
+            TooltipAttribute tooltipAttribute = FirstAttribute<TooltipAttribute>(p_nameInfo);
             return tooltipAttribute == null ? new GUIContent(nameString) : new GUIContent(nameString, tooltipAttribute.tooltip);
+        }
+
+        /// <summary>First attribute of a type on a member, via the member's own virtual
+        /// lookup so custom MemberInfo implementations are honoured.
+        ///
+        /// <para>Used in place of the <c>GetCustomAttribute&lt;T&gt;()</c> extension
+        /// throughout this class. That extension goes through <c>Attribute</c>'s static
+        /// helpers, which only understand runtime reflection objects: against any other
+        /// MemberInfo they return null — and the plural form returns a null SEQUENCE, which
+        /// the callers below used to walk straight into a NullReferenceException. Thrown from
+        /// inside OnGUI it takes the layout stack with it, surfacing as "Invalid GUILayout
+        /// state" rather than as itself.</para>
+        /// </summary>
+        private static T FirstAttribute<T>(MemberInfo p_member) where T : Attribute
+        {
+            var found = p_member.GetCustomAttributes(typeof(T), true);
+            return found != null && found.Length > 0 ? (T)found[0] : null;
+        }
+
+        /// <summary>Every attribute of a type on a member. Never null. See
+        /// <see cref="FirstAttribute{T}"/>.</summary>
+        private static IEnumerable<T> AllAttributes<T>(MemberInfo p_member) where T : Attribute
+        {
+            var found = p_member.GetCustomAttributes(typeof(T), true);
+            if (found == null) yield break;
+            foreach (var a in found) yield return (T)a;
         }
         
         static bool IsEditAsStringProperty(FieldInfo p_fieldInfo, FieldInfo p_parentInfo)
         {
             EditAsStringAttribute editAsStringAttribute = p_parentInfo == null
-                ? p_fieldInfo.GetCustomAttribute<EditAsStringAttribute>()
-                : p_parentInfo.GetCustomAttribute<EditAsStringAttribute>();
+                ? FirstAttribute<EditAsStringAttribute>(p_fieldInfo)
+                : FirstAttribute<EditAsStringAttribute>(p_parentInfo);
             return editAsStringAttribute != null;
         }
 
@@ -147,8 +195,8 @@ namespace Nodemon
         {
             FieldInfo referenceInfo = p_parameterInfo != null ? p_parameterInfo : p_fieldInfo;
             EditAsStringAttribute editAsStringAttribute = p_parameterInfo == null
-                ? p_fieldInfo.GetCustomAttribute<EditAsStringAttribute>()
-                : p_parameterInfo.GetCustomAttribute<EditAsStringAttribute>();
+                ? FirstAttribute<EditAsStringAttribute>(p_fieldInfo)
+                : FirstAttribute<EditAsStringAttribute>(p_parameterInfo);
             
             var readMethodInfo = p_parameterObject == null
                 ? p_fieldObject.GetType().GetMethod(editAsStringAttribute.ReadMethodName,
@@ -197,14 +245,14 @@ namespace Nodemon
         
         public static bool IsSeedProperty(FieldInfo p_fieldInfo)
         {
-            var seedAttribute = p_fieldInfo.GetCustomAttribute<SeedAttribute>();
+            var seedAttribute = FirstAttribute<SeedAttribute>(p_fieldInfo);
             return seedAttribute != null;
         }
 
         static bool SeedProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject, IReferencable p_reference)
         {
             bool invalidate = false;
-            var seedAttribute = p_fieldInfo.GetCustomAttribute<SeedAttribute>();
+            var seedAttribute = FirstAttribute<SeedAttribute>(p_fieldInfo);
 
             if (IsParameterProperty(p_fieldInfo))
             {
@@ -357,13 +405,13 @@ namespace Nodemon
 
         static public bool IsHidden(FieldInfo p_fieldInfo)
         {
-            HideInInspector hideInInspectorAttribute = p_fieldInfo.GetCustomAttribute<HideInInspector>();
+            HideInInspector hideInInspectorAttribute = FirstAttribute<HideInInspector>(p_fieldInfo);
             return hideInInspectorAttribute != null;
         }
         
         static public bool MeetsDependencies(FieldInfo p_fieldInfo, Object p_fieldObject)
         {
-            IEnumerable<DependencyAttribute> attributes = p_fieldInfo.GetCustomAttributes<DependencyAttribute>();
+            IEnumerable<DependencyAttribute> attributes = AllAttributes<DependencyAttribute>(p_fieldInfo);
             foreach (DependencyAttribute attribute in attributes)
             {
                 FieldInfo dependencyField = p_fieldObject.GetType().GetField(attribute.DependencyName);
@@ -372,7 +420,7 @@ namespace Nodemon
             }
 
             bool single = false;
-            IEnumerable<DependencySingleAttribute> singleAttributes = p_fieldInfo.GetCustomAttributes<DependencySingleAttribute>();
+            IEnumerable<DependencySingleAttribute> singleAttributes = AllAttributes<DependencySingleAttribute>(p_fieldInfo);
             foreach (DependencySingleAttribute attribute in singleAttributes)
             {
                 FieldInfo dependencyField = p_fieldObject.GetType().GetField(attribute.DependencyName);
@@ -439,26 +487,64 @@ namespace Nodemon
             return p_fieldInfo.FieldType.IsEnum;
         }
 
-        static bool EnumProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject)
+        /// <summary>
+        /// A labelled popup over a list of option NAMES, laid out like every other property
+        /// row. Returns true when the selection changed, with the new position in
+        /// <paramref name="p_index"/>.
+        ///
+        /// <para>Public because options do not always come from a C# enum. A node type
+        /// described by data — a schema, a config file — has option names and an index and
+        /// no type to reflect, and it should still produce a row identical to the ones
+        /// around it. Before this existed the only way to get that was to copy the layout,
+        /// and a copied layout drifts.</para>
+        ///
+        /// <para>The outer BeginHorizontal is constrained to labelWidth + fieldWidth so the
+        /// popup button cannot expand to fill the inspector and shift whatever trails the
+        /// row.</para>
+        /// </summary>
+        public static bool OptionsRow(GUIContent p_label, string[] p_options, ref int p_index)
         {
+            if (p_options == null || p_options.Length == 0)
+                return false;
+
             UniGUI.BeginChangeCheck();
 
-            // Outer BeginHorizontal constrained to labelWidth + fieldWidth so the
-            // EnumPopup button doesn't expand to fill the inspector and shift the
-            // trailing parameter icon. Label takes labelWidth, EnumPopup gets the
-            // remaining fieldWidth.
             GUILayout.BeginHorizontal(GUILayout.Width(labelWidth + (fieldWidth > 0 ? fieldWidth : 190)));
             GUILayout.Label(p_label, GUILayout.Width(labelWidth));
-            var newValue = UniGUILayout.EnumPopup((Enum) p_fieldInfo.GetValue(p_fieldObject));
+            int picked = UniGUILayout.Popup(GUIContent.none,
+                Mathf.Clamp(p_index, 0, p_options.Length - 1), p_options);
             GUILayout.EndHorizontal();
 
-            if (UniGUI.EndChangeCheck())
-            {
-                p_fieldInfo.SetValue(p_fieldObject, newValue);
-                return true;
-            }
+            if (!UniGUI.EndChangeCheck())
+                return false;
 
-            return false;
+            p_index = Mathf.Clamp(picked, 0, p_options.Length - 1);
+            return true;
+        }
+
+        static bool EnumProperty(GUIContent p_label, FieldInfo p_fieldInfo, Object p_fieldObject)
+        {
+            var current = p_fieldInfo.GetValue(p_fieldObject) as Enum;
+            if (current == null)
+                return false;
+
+            Type enumType = current.GetType();
+            string[] names = Enum.GetNames(enumType);
+            Array values  = Enum.GetValues(enumType);
+
+            // By POSITION in the value list, not by the enum's numeric value. The two are the
+            // same only for an enum numbered 0,1,2… from zero; for one with explicit values
+            // (None = 0, A = 5) treating the popup index as the value picks a member that does
+            // not exist. Enum.GetNames and Enum.GetValues are both ordered by value, so their
+            // indices correspond.
+            int index = Array.IndexOf(values, current);
+            if (index < 0) index = 0;
+
+            if (!OptionsRow(p_label, names, ref index))
+                return false;
+
+            p_fieldInfo.SetValue(p_fieldObject, values.GetValue(index));
+            return true;
         }
         
         static bool IsUnityObjectProperty(FieldInfo p_fieldInfo)

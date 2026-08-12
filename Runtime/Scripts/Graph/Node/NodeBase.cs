@@ -62,6 +62,19 @@ namespace Nodemon
         protected GraphBase _graph;
 
         public GraphBase Graph => _graph;
+
+        /// <summary>Point this node at <paramref name="p_graph"/>.
+        ///
+        /// <para><c>_graph</c> is a serialized reference to a Unity object, so a node that
+        /// is COPIED between graph assets — EditorUtility.CopySerialized, or any clone that
+        /// goes through serialization — carries a reference to the graph it came FROM. If
+        /// that source is temporary and gets destroyed, every node ends up pointing at a
+        /// destroyed object and the first thing to read <c>Graph</c> throws.</para>
+        ///
+        /// <para>Not needed on the ordinary paths: <see cref="Create"/> and
+        /// <see cref="Clone"/> both set it. This is for the copy path, which cannot.</para>
+        /// </summary>
+        public void RebindGraph(GraphBase p_graph) => _graph = p_graph;
         
         public IGraphController Controller => Graph.Controller;
 
@@ -87,7 +100,12 @@ namespace Nodemon
         
         [NonSerialized] 
         private bool[] _inputsAllowMultiple;
-        public bool[] InputsAllowMultiple
+        /// <summary>Per-port: does this input accept more than one connection?
+        ///
+        /// <para>Virtual so a node whose ports are described elsewhere — by a provider's
+        /// descriptor rather than by an attribute — can answer from there. The attribute
+        /// path below is unchanged and is what every reflected node uses.</para></summary>
+        public virtual bool[] InputsAllowMultiple
         {
             get
             {
