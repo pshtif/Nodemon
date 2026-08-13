@@ -17,6 +17,7 @@ namespace Nodemon
 
         // Selection
         private DraggingType _dragging = DraggingType.NONE;
+        private bool _dragUndoRecorded = false;
         private Rect _selectedRegion = Rect.zero;
 
         private bool _rightDrag = false;
@@ -361,6 +362,7 @@ namespace Nodemon
                 }
 
                 _dragging = DraggingType.NONE;
+                _dragUndoRecorded = false;
                 _selectedRegion = Rect.zero;
                 Owner.SetDirty(true);
             }
@@ -386,6 +388,19 @@ namespace Nodemon
             
             if (p_event.type == EventType.MouseDrag && p_event.button == 0)
             {
+                // Undo for MOVES: record the pre-drag graph once per gesture, at the
+                // first actual movement — the whole drag becomes one ⌘Z. (Creates,
+                // deletes and connects record at their call sites; moves never did,
+                // for as long as this view existed.)
+                if (!_dragUndoRecorded &&
+                    (_dragging == DraggingType.NODE_DRAG || _dragging == DraggingType.BOX_DRAG || _dragging == DraggingType.BOX_RESIZE))
+                {
+                    UniversalUndo.RegisterCompleteObjectUndo(Graph,
+                        _dragging == DraggingType.NODE_DRAG ? "Move Node"
+                        : _dragging == DraggingType.BOX_DRAG ? "Move Box" : "Resize Box");
+                    _dragUndoRecorded = true;
+                }
+
                 switch (_dragging)
                 {
                     case DraggingType.NODE_DRAG:
