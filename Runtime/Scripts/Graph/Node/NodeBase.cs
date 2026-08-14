@@ -501,13 +501,14 @@ namespace Nodemon
 
         protected bool IsCulled(Rect p_viewRect, Rect p_nodeRect)
         {
-            if (!p_viewRect.Contains(new Vector2(p_nodeRect.x, p_nodeRect.y)) &&
-                !p_viewRect.Contains(new Vector2(p_nodeRect.x + p_nodeRect.width, p_nodeRect.y)) &&
-                !p_viewRect.Contains(new Vector2(p_nodeRect.x, p_nodeRect.y + p_nodeRect.height)) &&
-                !p_viewRect.Contains(new Vector2(p_nodeRect.x + p_nodeRect.width, p_nodeRect.y + p_nodeRect.height)))
-                return true;
-
-            return false;
+            // Corner-containment is NOT intersection: zoom in until the node is
+            // larger than the view and all four corners leave the rect while the
+            // node still fills the screen — it popped out. True overlap test,
+            // padded for the flag tabs / connectors drawn outside the body rect.
+            var padded = new Rect(
+                p_nodeRect.x - 56, p_nodeRect.y - 24,
+                p_nodeRect.width + 112, p_nodeRect.height + 48);
+            return !p_viewRect.Overlaps(padded);
         }
 
         protected virtual void DrawNode(IViewOwner p_owner, Rect p_rect)
