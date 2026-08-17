@@ -34,6 +34,10 @@ namespace Nodemon
         [SerializeField]
         protected List<GraphBox> _boxes = new List<GraphBox>();
 
+        /// <summary>The canvas boxes, for serializers that persist them
+        /// outside Unity's own asset format.</summary>
+        public List<GraphBox> Boxes => _boxes;
+
         [NonSerialized]
         protected GraphBase _parentGraph;
 
@@ -315,7 +319,12 @@ namespace Nodemon
             
             // Draw boxes
             _boxes.Where(r => r != null).ForEach(r => r.DrawGUI(p_owner, this));
-            
+
+            // Regions a subclass DERIVES from the graph rather than stores in it —
+            // painted here so they sit over the authored boxes but under the wires
+            // and nodes they describe.
+            DrawUnderlay(p_owner);
+
             // Draw connections
             _connections.Where(c => c != null).ForEach(c=> c.Draw());
 
@@ -329,6 +338,10 @@ namespace Nodemon
             UniversalUndo.SetDirty(this);
         }
         
+        /// <summary>Paint derived regions behind the nodes — see the call site in
+        /// <see cref="DrawGUI"/>. Nothing by default.</summary>
+        protected virtual void DrawUnderlay(IViewOwner p_owner) { }
+
         public NodeBase HitsNode(Vector2 p_position)
         {
             return _nodes.AsEnumerable().Reverse().ToList().Find(n => n.rect.Contains(p_position - viewOffset));
@@ -375,8 +388,14 @@ namespace Nodemon
         
         public void CreateBox(Rect p_region)
         {
-            // Increase size of region to have padding
-            Rect boxRect = new Rect(p_region.xMin - 20, p_region.yMin - 60, p_region.width + 40, p_region.height + 80);
+            // Pad the region out to the nodes' FULL extent, then a margin. The
+            // region is a union of BODY rects, but a node is drawn wider than its
+            // body: two flag tabs hang 40 to its left (24 wide, at −40 and −20),
+            // one reaches 20 past its right, and the connector circles stand 12
+            // proud of the top and bottom edges. Padding by less on the left — it
+            // was 20 — leaves every node's tabs hanging outside the box.
+            Rect boxRect = new Rect(p_region.xMin - 50, p_region.yMin - 60,
+                                    p_region.width + 80, p_region.height + 80);
             
             GraphBox box = new GraphBox("Comment", boxRect);
             _boxes.Add(box);

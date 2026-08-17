@@ -617,10 +617,16 @@ namespace Nodemon
             float textW = size.x + kCommentPad;
             float textH = size.y + kCommentPad;
 
+            // Centred over the node rather than hung off its left edge: a bubble
+            // that starts at the corner reads as belonging to whatever sits up
+            // and to the left of it.
+            float boxW = size.x < 34 ? 50 : size.x + 16;
+            float boxX = offsetRect.center.x - boxW / 2;
+
             GUI.color = new Color(1,1,1,.6f);
-            GUI.Box(new Rect(offsetRect.x - 10, offsetRect.y - size.y - 26, size.x < 34 ? 50 : size.x + 16, size.y + 26), "", p_owner.GetSkin().GetStyle("NodeComment"));
+            GUI.Box(new Rect(boxX, offsetRect.y - size.y - 26, boxW, size.y + 26), "", p_owner.GetSkin().GetStyle("NodeComment"));
             GUI.color = Color.white;
-            string text = GUI.TextArea(new Rect(offsetRect.x - 2, offsetRect.y - size.y - 21, textW, textH), commentText, commentStyle);
+            string text = GUI.TextArea(new Rect(boxX + 8, offsetRect.y - size.y - 21, textW, textH), commentText, commentStyle);
             _model.comment = text;
         }
 

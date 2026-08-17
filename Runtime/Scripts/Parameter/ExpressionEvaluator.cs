@@ -10,7 +10,7 @@ namespace Nodemon
     /// <summary>
     /// Expression evaluation hub. The actual expression language is provided by an installed
     /// <see cref="Backend"/> delegate — Nodemon itself ships without one, so consumers must
-    /// register a backend at startup (e.g. Machina installs a wrangle/VEX-subset backend).
+    /// register a backend at startup (e.g. Machina installs a Faber-subset backend).
     /// Until a backend is installed, expressions resolve to <c>default(T)</c> and an error is
     /// reported via <see cref="hasErrorInEvaluation"/>.
     /// </summary>
