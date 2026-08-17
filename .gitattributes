@@ -1,0 +1,61 @@
+# This working tree lives on a shared NTFS partition and is used from both
+# Windows and Linux. Without this file, each side checks out its native line
+# endings and the other side sees every text file as modified. Text is stored
+# LF in git and checked out LF everywhere.
+* text=auto eol=lf
+
+# Batch files only run correctly with CRLF on Windows.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Unity text assets (YAML) - declared so they are never sniffed as binary.
+*.meta           text
+*.asset          text
+*.unity          text
+*.prefab         text
+*.mat            text
+*.anim           text
+*.controller     text
+*.physicMaterial text
+*.shader         text
+*.shadergraph    text
+*.compute        text
+*.cginc          text
+*.hlsl           text
+*.asmdef         text
+*.asmref         text
+*.machina        text
+
+# Binary - never normalized, never diffed.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.bmp   binary
+*.tga   binary
+*.tif   binary
+*.tiff  binary
+*.psd   binary
+*.exr   binary
+*.hdr   binary
+*.ico   binary
+*.fbx   binary
+*.blend binary
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+*.dll   binary
+*.so    binary
+*.dylib binary
+*.a     binary
+*.lib   binary
+*.pdb   binary
+*.wav   binary
+*.mp3   binary
+*.ogg   binary
+*.mp4   binary
+*.zip   binary
+*.7z    binary
+*.gz    binary
+*.unitypackage binary
