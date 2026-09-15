@@ -669,7 +669,7 @@ namespace Nodemon
                 {
                     if (newValue != null)
                     {
-                        PropertyName newExposedName = new PropertyName(UnityEditor.GUID.Generate().ToString());
+                        PropertyName newExposedName = new PropertyName(System.Guid.NewGuid().ToString());
                         exposedReference.GetType().GetField("exposedName")
                             .SetValue(exposedReference, newExposedName);
                         p_propertyTable.SetReferenceValue(newExposedName, newValue);
