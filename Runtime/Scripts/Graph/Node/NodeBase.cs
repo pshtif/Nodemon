@@ -590,44 +590,116 @@ namespace Nodemon
             }
         }
         
-        public void DrawComment(IViewOwner p_owner, Rect p_rect, bool p_zoomed = true)
+        /// <summary>The comment bubble's rect in graph-VIEW space (node rect +
+        /// viewOffset — the space nodes are drawn and hit-tested in). Written by
+        /// <see cref="DrawCommentLabel"/>; zero when nothing was drawn.</summary>
+        [NonSerialized] public Rect CommentRect;
+
+        /// <summary>The editor's rect in SCREEN space while this comment is being
+        /// edited (the editor is drawn outside the zoom matrix). Zero otherwise.</summary>
+        [NonSerialized] public Rect CommentEditorRect;
+
+        const float kCommentFont = 14f;
+        const float kCommentPad = 4f;
+        /// <summary>Past this zoom-out a bubble is a few pixels of noise — skip it.</summary>
+        const float kCommentCullZoom = 3f;
+
+        static GUIStyle CommentTextStyle(IViewOwner p_owner)
         {
-            if (_model.comment == null)
+            // CalcSize returns the tight glyph-metric extent — it doesn't include
+            // descender pixels (g, y, p, q) or the trailing AA fringe, so a field
+            // sized exactly to CalcSize clips the bottom couple of px of those
+            // characters; callers pad by kCommentPad.
+            GUIStyle style = new GUIStyle();
+            style.font = p_owner.GetSkin().GetStyle("NodeComment").font;
+            style.fontSize = (int)kCommentFont;
+            style.normal.textColor = Color.black;
+            style.wordWrap = false;
+            return style;
+        }
+
+        /// <summary>
+        /// The comment as a read-only bubble, drawn INSIDE the graph's zoom matrix so
+        /// it scales and layers exactly like the node it belongs to. Editing is a
+        /// separate pass (<see cref="DrawCommentEditor"/>): IMGUI text editing under
+        /// a scaled GUI.matrix places the caret in the wrong character, which is
+        /// the one reason the bubble used to be drawn unscaled — at the price of
+        /// never shrinking with the graph and sliding off its node with zoom.
+        /// </summary>
+        public void DrawCommentLabel(IViewOwner p_owner, Rect p_viewRect)
+        {
+            CommentRect = Rect.zero;
+            if (_model.comment == null || Graph.zoom > kCommentCullZoom)
                 return;
 
-            Rect offsetRect = p_zoomed
-                ? new Rect(rect.x + Graph.viewOffset.x, rect.y + Graph.viewOffset.y, Size.x, Size.y)
-                : new Rect((rect.x + Graph.viewOffset.x) / Graph.zoom, (rect.y + Graph.viewOffset.y) / Graph.zoom, Size.x, Size.y);
-            
-            GUIStyle commentStyle = new GUIStyle();
-            commentStyle.font = p_owner.GetSkin().GetStyle("NodeComment").font;
-            commentStyle.fontSize = 14;
-            commentStyle.normal.textColor = Color.black;
+            Rect offsetRect = new Rect(rect.x + Graph.viewOffset.x, rect.y + Graph.viewOffset.y, Size.x, Size.y);
+            if (IsCulled(p_viewRect, offsetRect))
+                return;
 
-            string commentText = _model.comment;
-            Vector2 size = commentStyle.CalcSize( new GUIContent( commentText ) );
-
-            // CalcSize returns the tight glyph-metric extent — it doesn't
-            // include descender pixels (g, y, p, q) or the trailing AA
-            // fringe, so a TextArea sized exactly to CalcSize clips the
-            // bottom couple of px of those characters. Pad both axes by a
-            // small constant; the surrounding box is already +16/+26 so it
-            // absorbs the extra without visual change.
-            const float kCommentPad = 4f;
-            float textW = size.x + kCommentPad;
-            float textH = size.y + kCommentPad;
+            GUIStyle style = CommentTextStyle(p_owner);
+            Vector2 size = style.CalcSize(new GUIContent(_model.comment));
 
             // Centred over the node rather than hung off its left edge: a bubble
             // that starts at the corner reads as belonging to whatever sits up
             // and to the left of it.
             float boxW = size.x < 34 ? 50 : size.x + 16;
             float boxX = offsetRect.center.x - boxW / 2;
+            CommentRect = new Rect(boxX, offsetRect.y - size.y - 26, boxW, size.y + 26);
 
-            GUI.color = new Color(1,1,1,.6f);
-            GUI.Box(new Rect(boxX, offsetRect.y - size.y - 26, boxW, size.y + 26), "", p_owner.GetSkin().GetStyle("NodeComment"));
+            GUI.color = new Color(1, 1, 1, .6f);
+            GUI.Box(CommentRect, "", p_owner.GetSkin().GetStyle("NodeComment"));
             GUI.color = Color.white;
-            string text = GUI.TextArea(new Rect(boxX + 8, offsetRect.y - size.y - 21, textW, textH), commentText, commentStyle);
-            _model.comment = text;
+            GUI.Label(new Rect(boxX + 8, offsetRect.y - size.y - 21, size.x + kCommentPad, size.y + kCommentPad),
+                _model.comment, style);
+        }
+
+        /// <summary>
+        /// The live text field for the comment being edited — drawn OUTSIDE the zoom
+        /// matrix at natural size, anchored where the scaled bubble sits, so the
+        /// caret behaves. Returns false when editing should end (Escape, or the
+        /// comment vanished).
+        /// </summary>
+        public bool DrawCommentEditor(IViewOwner p_owner)
+        {
+            CommentEditorRect = Rect.zero;
+            if (_model.comment == null)
+                return false;
+
+            Event e = Event.current;
+            if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape)
+            {
+                e.Use();
+                return false;
+            }
+
+            // The bubble's graph-view position, mapped to the screen (the view
+            // divides by zoom on the way in — see GraphView.ProcessLeftClick).
+            Rect offsetRect = new Rect(rect.x + Graph.viewOffset.x, rect.y + Graph.viewOffset.y, Size.x, Size.y);
+            Vector2 anchor = new Vector2(offsetRect.center.x, offsetRect.y) / Graph.zoom;
+
+            GUIStyle style = CommentTextStyle(p_owner);
+            Vector2 size = style.CalcSize(new GUIContent(_model.comment));
+            float boxW = size.x < 34 ? 50 : size.x + 16;
+            float boxX = anchor.x - boxW / 2;
+            CommentEditorRect = new Rect(boxX, anchor.y - size.y - 26, boxW, size.y + 26);
+
+            GUI.color = new Color(1, 1, 1, .9f);
+            GUI.Box(CommentEditorRect, "", p_owner.GetSkin().GetStyle("NodeComment"));
+            GUI.color = Color.white;
+
+            const string kControl = "NodeCommentEditor";
+            GUI.SetNextControlName(kControl);
+            string text = GUI.TextArea(
+                new Rect(boxX + 8, anchor.y - size.y - 21, size.x + kCommentPad, size.y + kCommentPad),
+                _model.comment, style);
+            if (text != _model.comment)
+            {
+                _model.comment = text;
+                p_owner.SetDirty(true);
+            }
+            if (GUI.GetNameOfFocusedControl() != kControl)
+                GUI.FocusControl(kControl);
+            return true;
         }
 
         public virtual Rect GetConnectorRect(ConnectorType p_connectorType, int p_index)

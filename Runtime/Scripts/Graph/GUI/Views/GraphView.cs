@@ -58,7 +58,7 @@ namespace Nodemon
                 Graph.DrawGUI(Owner, p_event, _zoomedRect);
                 GUIScaleUtils.EndScale();
                 
-                Graph.DrawComments(Owner, p_rect, false);
+                Graph.DrawCommentEditor(Owner);
                 
                 DrawHelp(p_rect);
                 
@@ -271,6 +271,26 @@ namespace Nodemon
                 Owner.SetDirty(true);
                 
                 var mousePosition = p_event.mousePosition * Graph.zoom - new Vector2(p_rect.x, p_rect.y);
+
+                // Comment editing: a click anywhere but the open editor closes it;
+                // a double-click on a bubble opens that one. The editor rect is in
+                // SCREEN space (drawn outside the zoom matrix), the bubbles in view space.
+                if (Graph.editingComment != null)
+                {
+                    if (Graph.editingComment.CommentEditorRect.Contains(p_event.mousePosition))
+                        return;
+                    Graph.EndCommentEdit();
+                }
+                if (p_event.clickCount == 2)
+                {
+                    NodeBase commented = Graph.HitsComment(mousePosition);
+                    if (commented != null)
+                    {
+                        Graph.editingComment = commented;
+                        p_event.Use();
+                        return;
+                    }
+                }
                 NodeBase hitNode;
                 ConnectorType connectorType;
                 int connectorIndex;

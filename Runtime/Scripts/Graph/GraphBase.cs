@@ -311,6 +311,10 @@ namespace Nodemon
         
         public Vector2 viewOffset = Vector2.zero;
         public float zoom = 1;
+
+        /// <summary>The node whose comment is open for typing, if any. View state,
+        /// not document state — never serialized.</summary>
+        [NonSerialized] public NodeBase editingComment;
         
         public virtual void DrawGUI(IViewOwner p_owner, Event p_event, Rect p_rect)
         {
@@ -331,6 +335,10 @@ namespace Nodemon
             // Draw Nodes
             // Preselect non null to avoid null states from serialization issues
             _nodes.Where(n => n != null).ForEach(n => n.DrawGUI(p_owner, p_rect));
+
+            // Comment bubbles, in the same scaled space as the nodes they hang
+            // over. The one being edited is drawn unscaled by DrawCommentEditor.
+            _nodes.Where(n => n != null && n != editingComment).ForEach(n => n.DrawCommentLabel(p_owner, p_rect));
 
             // Draw user interaction with connections
             NodeConnection.DrawConnectionToMouse(SelectionManager.connectingNode, SelectionManager.connectingIndex, SelectionManager.connectingType, SelectionManager.connectingPosition);
@@ -406,9 +414,30 @@ namespace Nodemon
             return _connections.Find(c => c.Hits(p_position, p_distance));
         }
 
-        public void DrawComments(IViewOwner p_owner, Rect p_rect, bool p_zoomed)
+        /// <summary>The unscaled text field for <see cref="editingComment"/> —
+        /// call AFTER the zoom matrix is popped. Clears the state when editing ends.</summary>
+        public void DrawCommentEditor(IViewOwner p_owner)
         {
-            _nodes.Where(n => n != null).ForEach(n => n.DrawComment(p_owner, p_rect, p_zoomed));
+            if (editingComment == null)
+                return;
+            if (!_nodes.Contains(editingComment) || !editingComment.DrawCommentEditor(p_owner))
+                EndCommentEdit();
+        }
+
+        public void EndCommentEdit()
+        {
+            if (editingComment != null)
+                editingComment.CommentEditorRect = Rect.zero;
+            editingComment = null;
+            GUI.FocusControl("");
+        }
+
+        /// <summary>The node whose comment bubble contains <paramref name="p_position"/>
+        /// (graph-view space, like <see cref="HitsNode"/>' input).</summary>
+        public NodeBase HitsComment(Vector2 p_position)
+        {
+            return _nodes.AsEnumerable().Reverse().ToList()
+                .Find(n => n.CommentRect.width > 0 && n.CommentRect.Contains(p_position));
         }
         
         public void RemoveNullReferences()

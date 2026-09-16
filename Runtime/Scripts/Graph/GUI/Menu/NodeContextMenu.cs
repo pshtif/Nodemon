@@ -39,11 +39,19 @@ namespace Nodemon
                 menu.AddSeparator("");
                 if (p_node.HasComment())
                 {
-                    menu.AddItem(new GUIContent("Remove Comment"), false, p_node.RemoveComment);
+                    menu.AddItem(new GUIContent("Remove Comment"), false, () =>
+                    {
+                        if (p_graph.editingComment == p_node) p_graph.EndCommentEdit();
+                        p_node.RemoveComment();
+                    });
                 }
                 else
                 {
-                    menu.AddItem(new GUIContent("Create Comment"), false, p_node.CreateComment);
+                    menu.AddItem(new GUIContent("Create Comment"), false, () =>
+                    {
+                        p_node.CreateComment();
+                        p_graph.editingComment = p_node; // straight into typing
+                    });
                 }
             }
 
