@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
-using OdinSerializer.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -18,13 +17,13 @@ namespace Nodemon
     {
         public static Transform ResolvePathWithFind(this Transform p_transform, string p_path)
         {
-            if (p_transform == null || p_path.IsNullOrWhitespace())
+            if (p_transform == null || string.IsNullOrWhiteSpace(p_path))
                 return p_transform;
 
             var split = p_path.Split('/');
             for (int i = 0; i<split.Length; i++)
             {
-                if (split[i].IsNullOrWhitespace())
+                if (string.IsNullOrWhiteSpace(split[i]))
                     continue;
                 
                 Match match = Regex.Match(split[i], @"\{[0-9]+\}", RegexOptions.None);

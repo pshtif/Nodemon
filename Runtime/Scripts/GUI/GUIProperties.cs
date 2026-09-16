@@ -1,4 +1,4 @@
-﻿/*
+/*
  *	Created by:  Peter @sHTiF Stefcek
  */
 
@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using OdinSerializer.Utilities;
 using Nodemon.Attributes;
 using UnityEngine;
 using UniversalGUI;
@@ -726,8 +725,8 @@ namespace Nodemon
         {
             FieldInfo referenceInfo = p_parameterInfo != null ? p_parameterInfo : p_fieldInfo;
             RangeAttribute range = p_parameterInfo == null
-                ? p_fieldInfo.GetAttribute<RangeAttribute>()
-                : p_parameterInfo.GetAttribute<RangeAttribute>();
+                ? p_fieldInfo.GetCustomAttribute<RangeAttribute>()
+                : p_parameterInfo.GetCustomAttribute<RangeAttribute>();
 
             string type = p_fieldInfo.FieldType.ToString();
             switch (type)
@@ -738,7 +737,7 @@ namespace Nodemon
                     // default TextField. Kept inside its own brace block so the
                     // local vars don't leak into the switch's shared scope.
                     var multiline = (p_parameterInfo == null ? p_fieldInfo : p_parameterInfo)
-                        .GetAttribute<Nodemon.Attributes.MultilineAttribute>();
+                        .GetCustomAttribute<Nodemon.Attributes.MultilineAttribute>();
                     if (multiline != null)
                     {
                         UniGUI.BeginChangeCheck();

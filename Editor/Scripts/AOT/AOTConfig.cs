@@ -1,8 +1,8 @@
-﻿/*
+/*
  *	Created by:  Peter @sHTiF Stefcek
  */
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR && MACHINA_ODIN // OdinSerializer's IL2CPP AOT support — meaningless without Odin
 
 using System;
 using System.Collections.Generic;

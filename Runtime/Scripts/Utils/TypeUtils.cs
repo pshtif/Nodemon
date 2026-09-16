@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using OdinSerializer.Utilities;
 
 namespace Nodemon
 {
@@ -30,7 +29,7 @@ namespace Nodemon
 
             var result = new List<Type>();
 
-            assemblies.Where(a => !a.IsDynamic).ForEach(a => result.AddRange(a.GetExportedTypes()));
+            foreach (var a in assemblies.Where(a => !a.IsDynamic)) result.AddRange(a.GetExportedTypes());
 
             var typeDictionary = new Dictionary<string, Type>();
             foreach (var type in result)

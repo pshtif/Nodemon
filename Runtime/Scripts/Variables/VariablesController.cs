@@ -2,13 +2,19 @@
  *	Created by:  Peter @sHTiF Stefcek
  */
 
+#if MACHINA_ODIN
 using OdinSerializer;
 using OdinSerializer.Utilities;
+#endif
 using UnityEngine;
 
 namespace Nodemon
 {
+#if MACHINA_ODIN
     public class VariablesController : MonoBehaviour, ISerializationCallbackReceiver, ISupportsPrefabSerialization, IVariableBindable
+#else
+    public class VariablesController : MonoBehaviour, ISerializationCallbackReceiver, IVariableBindable
+#endif
     {
 
         [SerializeField] 
@@ -44,6 +50,7 @@ namespace Nodemon
             //MachinaCore.Instance.SetGlobalVariables(null);
         }
 
+#if MACHINA_ODIN
         [SerializeField, HideInInspector]
         private SerializationData _serializationData;
         
@@ -68,5 +75,19 @@ namespace Nodemon
                 UnitySerializationUtility.SerializeUnityObject(this, ref _serializationData, serializeUnityFields: true, context: cachedContext.Value);
             }
         }
+#else
+        [SerializeField, HideInInspector]
+        private SerializedBlob _serializationData;
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            GraphSerialization.Default.Deserialize(this, ref _serializationData);
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            GraphSerialization.Default.Serialize(this, ref _serializationData);
+        }
+#endif
     }
 }

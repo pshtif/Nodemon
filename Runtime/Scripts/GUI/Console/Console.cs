@@ -1,11 +1,10 @@
-﻿/*
+/*
  *	Created by:  Peter @sHTiF Stefcek
  */
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OdinSerializer.Utilities;
 using UnityEngine;
 
 namespace Nodemon

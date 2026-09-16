@@ -11,7 +11,9 @@ using UnityEngine;
 using UniversalGUI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
+#if MACHINA_ODIN
 using SerializationUtility = OdinSerializer.SerializationUtility;
+#endif
 
 namespace Nodemon
 {
@@ -98,8 +100,12 @@ namespace Nodemon
         
         public NodeModelBase Clone(IExposedPropertyTable p_controller)
         {
-            // Doing a shallow copy
+            // A deep copy of the data; Unity references stay shared (see the seam).
+#if MACHINA_ODIN
             var clone = (NodeModelBase)SerializationUtility.CreateCopy(this);
+#else
+            var clone = GraphSerialization.Default.DeepCopy(this);
+#endif
 
             // Exposed references are not copied in serialization as they are external Unity references so they will refer to the same exposed reference instance not just the unity object reference, we need to copy them additionally
             FieldInfo[] fields = clone.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);

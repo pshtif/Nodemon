@@ -5,7 +5,9 @@
 
 using System.Collections.Generic;
 using Nodemon.Attributes;
+#if MACHINA_ODIN
 using OdinSerializer;
+#endif
 using UnityEngine;
 
 namespace Nodemon

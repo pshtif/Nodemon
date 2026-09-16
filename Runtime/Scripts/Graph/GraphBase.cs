@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if MACHINA_ODIN
 using OdinSerializer;
 using OdinSerializer.Utilities;
+#endif
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -236,6 +238,7 @@ namespace Nodemon
 
 #region SERIALIZATION
 
+#if MACHINA_ODIN
         [SerializeField, HideInInspector]
         private SerializationData _serializationData;
         
@@ -300,6 +303,42 @@ namespace Nodemon
                     cachedContext.Value);
             }
         }
+#else
+        // The seam: Unity serializes (and Undo snapshots) this blob in place of
+        // Odin's SerializationData — see GraphSerialization.cs.
+        [SerializeField, HideInInspector]
+        private SerializedBlob _serializationData;
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (this != null)
+                GraphSerialization.Default.Deserialize(this, ref _serializationData);
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+#if UNITY_EDITOR
+            Nodes.FindAll(n => n is IReserializable).ConvertAll(n => (IReserializable)n).ForEach(n => n.Reserialize());
+            if (this != null)
+                GraphSerialization.Default.Serialize(this, ref _serializationData);
+#endif
+        }
+
+        public byte[] SerializeToBytes(DataFormat p_format, ref List<Object> p_references)
+        {
+            // A SubGraph's inner graph is [NonSerialized] and reaches the bytes only
+            // through its model's Reserialize(); doing it HERE (not just in
+            // OnBeforeSerialize) makes nesting recursive: an inner graph's own
+            // subgraphs bind when the inner graph is serialized into its parent.
+            Nodes.FindAll(n => n is IReserializable).ConvertAll(n => (IReserializable)n).ForEach(n => n.Reserialize());
+            return GraphSerialization.Default.ToBytes(this, ref p_references);
+        }
+
+        public void DeserializeFromBytes(byte[] p_bytes, DataFormat p_format, ref List<Object> p_references)
+        {
+            GraphSerialization.Default.FromBytes(this, p_bytes, ref p_references);
+        }
+#endif
         
         public void ValidateSerialization()
         {

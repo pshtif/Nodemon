@@ -24,7 +24,7 @@ namespace Nodemon
             CategoryAttribute attribute = p_type.GetCustomAttribute<CategoryAttribute>();
             string category = attribute == null ? "Other" : attribute.type;
             string categoryLabel = attribute == null ? string.Empty : attribute.label;
-            if (OdinSerializer.Utilities.StringExtensions.IsNullOrWhitespace(categoryLabel))
+            if (string.IsNullOrWhiteSpace(categoryLabel))
             {
                 categoryLabel = category.ToString();
                 categoryLabel = categoryLabel.Substring(0, 1) + categoryLabel.Substring(1).ToLower();

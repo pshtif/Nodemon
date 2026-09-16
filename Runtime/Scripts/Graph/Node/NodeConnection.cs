@@ -3,7 +3,9 @@
  */
 
 using System;
+#if MACHINA_ODIN
 using OdinSerializer;
+#endif
 using UnityEngine;
 
 namespace Nodemon
@@ -16,9 +18,13 @@ namespace Nodemon
         public int inputIndex;
         public int outputIndex;
         
+#if MACHINA_ODIN
         [OdinSerialize]
+#endif
         public NodeBase inputNode;
+#if MACHINA_ODIN
         [OdinSerialize]
+#endif
         public NodeBase outputNode;
         
         #if UNITY_EDITOR
