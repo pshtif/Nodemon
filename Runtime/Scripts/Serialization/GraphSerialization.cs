@@ -9,13 +9,12 @@
  *  a deep copy. Unity's undo snapshots the blob exactly as it snapshotted Odin's
  *  SerializationData, so nothing above the seam changes.
  *
- *  Define MACHINA_ODIN to compile the original Odin paths instead (each call site
- *  keeps them verbatim behind the define); without it the Json.NET implementation
- *  below is the only serializer in the build. Json.NET ships with Unity
- *  (com.unity.nuget.newtonsoft-json, MIT) — no third-party notice, no Apache.
+ *  The Json.NET implementation below is the only serializer in the build.
+ *  Json.NET ships with Unity (com.unity.nuget.newtonsoft-json, MIT) — no
+ *  third-party notice, no Apache. (Odin itself left in the commit after this
+ *  seam landed; git history has the original call sites.)
  */
 
-#if !MACHINA_ODIN
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -464,4 +463,3 @@ namespace Nodemon
         }
     }
 }
-#endif

@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-#if MACHINA_ODIN
-using OdinSerializer;
-using OdinSerializer.Utilities;
-#endif
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -238,72 +234,6 @@ namespace Nodemon
 
 #region SERIALIZATION
 
-#if MACHINA_ODIN
-        [SerializeField, HideInInspector]
-        private SerializationData _serializationData;
-        
-        void ISerializationCallbackReceiver.OnAfterDeserialize()
-        {
-            //Debug.Log("OnAfterDeserialize");
-            using (var cachedContext = Cache<DeserializationContext>.Claim())
-            {
-                cachedContext.Value.Binder = MigrationSerializationBinder.Init();
-                cachedContext.Value.Config.SerializationPolicy = SerializationPolicies.Everything;
-                
-                // New bug in 2022.3? WTF
-                if (this != null)
-                {
-                    UnitySerializationUtility.DeserializeUnityObject(this, ref _serializationData, cachedContext.Value);
-                }
-            }
-        }
-        
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
-        { 
-            //Debug.Log("OnBeforeSerialize");
-#if UNITY_EDITOR
-            Nodes.FindAll(n => n is IReserializable).ConvertAll(n => (IReserializable)n).ForEach(n => n.Reserialize());
-            
-            using (var cachedContext = OdinSerializer.Utilities.Cache<SerializationContext>.Claim())
-            {
-                cachedContext.Value.Binder = MigrationSerializationBinder.Init();
-                cachedContext.Value.Config.SerializationPolicy = SerializationPolicies.Everything;
-                
-                // New bug in 2022.3? WTF 
-                if (this != null)
-                {
-                    UnitySerializationUtility.SerializeUnityObject(this, ref _serializationData, serializeUnityFields: true, context: cachedContext.Value);
-                }
-            }
-#endif
-        }
-        
-        public byte[] SerializeToBytes(DataFormat p_format, ref List<Object> p_references)
-        {
-            //Debug.Log("SerializeToBytes "+this);
-            byte[] bytes = null;
-
-            using (var cachedContext = Cache<SerializationContext>.Claim())
-            {
-                cachedContext.Value.Config.SerializationPolicy = SerializationPolicies.Everything;
-                UnitySerializationUtility.SerializeUnityObject(this, ref bytes, ref p_references, p_format, true,
-                    cachedContext.Value);
-            }
-
-            return bytes;
-        }
-
-        public void DeserializeFromBytes(byte[] p_bytes, DataFormat p_format, ref List<Object> p_references)
-        {
-            //Debug.Log("DeserializeToBytes "+this);
-            using (var cachedContext = Cache<DeserializationContext>.Claim())
-            {
-                cachedContext.Value.Config.SerializationPolicy = SerializationPolicies.Everything;
-                UnitySerializationUtility.DeserializeUnityObject(this, ref p_bytes, ref p_references, p_format,
-                    cachedContext.Value);
-            }
-        }
-#else
         // The seam: Unity serializes (and Undo snapshots) this blob in place of
         // Odin's SerializationData — see GraphSerialization.cs.
         [SerializeField, HideInInspector]
@@ -338,7 +268,6 @@ namespace Nodemon
         {
             GraphSerialization.Default.FromBytes(this, p_bytes, ref p_references);
         }
-#endif
         
         public void ValidateSerialization()
         {
