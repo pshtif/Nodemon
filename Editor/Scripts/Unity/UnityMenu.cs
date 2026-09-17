@@ -1,4 +1,4 @@
-﻿/*
+/*
  *	Created by:  Peter @sHTiF Stefcek
  */
 
@@ -14,7 +14,9 @@ namespace Nodemon.Editor
 {
     public class UnityMenu
     {
-        [MenuItem("Tools/UniversalGUI/Use EditorGUI")]
+#if MACHINA_DEV
+        [MenuItem("Tools/Machina/Developer/Use EditorGUI", false, 120)]
+#endif
         public static void Reserialize()
         {
             if (GetAllDefines().Contains("USE_EDITORGUI"))
@@ -27,7 +29,9 @@ namespace Nodemon.Editor
             }         
         }
 
-        [MenuItem("Tools/UniversalGUI/Use EditorGUI", true)]
+#if MACHINA_DEV
+        [MenuItem("Tools/Machina/Developer/Use EditorGUI", true, 120)]
+#endif
         private static bool ToggleActionValidate()
         {
             Menu.SetChecked("Tools/UniversalGUI/Use EditorGUI", GetAllDefines().Contains("USE_EDITORGUI"));
